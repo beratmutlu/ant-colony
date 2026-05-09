@@ -2,8 +2,8 @@ import pygame
 from colony.core.simulation import Simulation
 from colony.types.item_type import ItemType
 
-CELL = 12
-FPS = 30
+CELL = 24
+FPS = 15
 
 class PygameRenderer:
     def __init__(self, sim: Simulation):
@@ -12,6 +12,9 @@ class PygameRenderer:
         self.W = cfg["grid"]["width"]
         self.H = cfg["grid"]["height"]
         self.nest = tuple(cfg["nest_pos"])
+        self.debug = False
+        self.show_food_ph = True
+        self.show_nest_ph = True
 
     def run(self):
         pygame.init()
@@ -27,6 +30,12 @@ class PygameRenderer:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         paused = not paused
+                    if event.key == pygame.K_d:
+                        self.debug = not self.debug
+                    if event.key == pygame.K_f:
+                        self.show_food_ph = not self.show_food_ph
+                    if event.key == pygame.K_n:
+                        self.show_nest_ph = not self.show_nest_ph
 
             if not paused:
                 self.sim.step()
@@ -37,7 +46,8 @@ class PygameRenderer:
 
             for ant in self.sim.manager.ants:
                 x, y = ant.cell.pos
-                pygame.draw.circle(screen, (255, 255, 255),
+                color = (255, 200, 0) if ant.cell.pos else (255, 255, 255)
+                pygame.draw.circle(screen, color,
                     (x*CELL + CELL//2, y*CELL + CELL//2), CELL//3)
 
             pygame.display.flip()
@@ -49,6 +59,10 @@ class PygameRenderer:
         if cell.get_food() > 0:
             g = int(min(cell.get_food() / 10 * 255, 255))
             return (0, g, 0)
-        r = int(min(cell.items[ItemType.PHEROMONE_FOOD] / 10 * 255, 255))
-        b = int(min(cell.items[ItemType.PHEROMONE_NEST] / 10 * 255, 255))
+
+        if self.debug:
+            return (20, 20, 20)
+
+        r = int(min(cell.items[ItemType.PHEROMONE_FOOD] / 10 * 255, 255)) if self.show_food_ph else 0
+        b = int(min(cell.items[ItemType.PHEROMONE_NEST] / 10 * 255, 255)) if self.show_nest_ph else 0
         return (r, 10, b)

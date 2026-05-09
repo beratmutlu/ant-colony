@@ -34,14 +34,14 @@ class Ant:
                 if ok and p.nest_adjacent.get(d):
                     if random.random() < 0.95:
                         return Action(ActionType.MOVE, d)
-                    
-            direction = self._follow_gradient(p, ItemType.PHEROMONE_NEST)
+
+            direction = self._follow_gradient(p, ItemType.PHEROMONE_NEST, ItemType.PHEROMONE_FOOD)
             return Action(ActionType.MOVE, direction)
 
-        direction = self._follow_gradient(p, ItemType.PHEROMONE_FOOD)
+        direction = self._follow_gradient(p, ItemType.PHEROMONE_FOOD, ItemType.PHEROMONE_NEST)
         return Action(ActionType.MOVE, direction)
 
-    def _follow_gradient(self, percept: Percept, pheromone: ItemType) -> Direction:
+    def _follow_gradient(self, percept: Percept, attract: ItemType, repel: ItemType) -> Direction:
         passable = [d for d, ok in percept.neighbors_passable.items()
                     if ok and d.apply(self.cell.pos) not in self.memory]
         if not passable:
@@ -51,8 +51,10 @@ class Ant:
 
         weights = []
         for d in passable:
-            ph = percept.neighbor_pheromones.get(d, {}).get(pheromone, 0.0)
-            weights.append(max(ph, 1e-6) ** alpha)
+            ph = percept.neighbor_pheromones.get(d, {})
+            attraction = max(ph.get(attract, 0.0), 1e-6) ** alpha
+            repulsion  = max(ph.get(repel, 0.0), 1e-6) ** alpha
+            weights.append(attraction / repulsion)
 
         return random.choices(passable, weights=weights)[0]
 

@@ -5,7 +5,7 @@
         "height": 20
     },
     "ants": {
-        "n": 2,
+        "n": 7,
         "energy": 100.0,
         "determinism": 99.0
     },

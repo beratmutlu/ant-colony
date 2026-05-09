@@ -4,7 +4,7 @@ from colony.agents.percept import Percept
 from colony.types.item_type import ItemType
 import random
 
-MEMORY_SIZE = 8
+MEMORY_SIZE = 4
 
 class Ant:
     def __init__(self, cell: Cell, energy: float = 100.0, determinism: float = 50.0):
@@ -30,6 +30,11 @@ class Ant:
             return Action(ActionType.DROP)
 
         if p.carrying:
+            for d, ok in p.neighbors_passable.items():
+                if ok and p.nest_adjacent.get(d):
+                    if random.random() < 0.95:
+                        return Action(ActionType.MOVE, d)
+                    
             direction = self._follow_gradient(p, ItemType.PHEROMONE_NEST)
             return Action(ActionType.MOVE, direction)
 
@@ -40,7 +45,7 @@ class Ant:
         passable = [d for d, ok in percept.neighbors_passable.items()
                     if ok and d.apply(self.cell.pos) not in self.memory]
         if not passable:
-            return Direction.NORTH
+            return None
 
         alpha = (self.determinism / 100) ** 2 * 5.0
 

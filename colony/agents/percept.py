@@ -14,3 +14,5 @@ class Percept:
 
     neighbor_pheromones: dict[Direction, dict[ItemType, float]]
     neighbors_passable: dict[Direction, bool]
+
+    nest_adjacent: dict[Direction, bool]

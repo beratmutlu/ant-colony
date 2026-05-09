@@ -50,6 +50,11 @@ class Manager:
                 d: n_cell.get_pheromones() if n_cell else {}
                 for d, n_cell in neighbors.items()
             },
+
+            nest_adjacent={
+                d: (n_cell is not None and n_cell.pos == self.nest_pos)
+                for d, n_cell in neighbors.items()
+            }
         )
 
 

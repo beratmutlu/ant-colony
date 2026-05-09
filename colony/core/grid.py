@@ -7,7 +7,7 @@ class Grid:
         self.height = height
 
         self.cells: dict[tuple[int, int], Cell] = {
-            (x, y): Cell((x, y), cap_ant=1, cap_item=100)
+            (x, y): Cell((x, y), cap_ant=10, cap_item=100)
             for x in range(width)
             for y in range(height)
         }

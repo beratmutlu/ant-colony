@@ -10,6 +10,7 @@ class Ant:
     def __init__(self, cell: Cell, energy: float = 100.0, determinism: float = 50.0):
         self.cell = cell
         self.energy = energy
+        self.score = 0
         self.carrying: bool = False
         self.last_action_ok: bool = True
         self.memory: list[tuple[int ,int]] = []

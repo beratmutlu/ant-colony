@@ -5,9 +5,9 @@
         "height": 20
     },
     "ants": {
-        "n": 2,
+        "n": 10,
         "energy": 100.0,
-        "determinism": 100.0
+        "determinism": 99.0
     },
     "nest_pos": [10, 10],
     "ph_strength": 10.0,

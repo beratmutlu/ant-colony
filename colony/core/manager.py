@@ -64,8 +64,10 @@ class Manager:
                 moves.setdefault(target, []).append(ant)
             elif action.type == ActionType.PICK_UP:
                 self._pick_up(ant)
+                ant.memory.clear()
             elif action.type == ActionType.DROP:
                 self._drop(ant)
+                ant.memory.clear()
 
         for target_pos, competing in moves.items():
             cap = self.grid.get_cell(*target_pos).cap_ant
@@ -103,7 +105,7 @@ class Manager:
 
     def _drop(self, ant: Ant) -> None:
         if ant.carrying:
-            ant.cell.add_item(ItemType.FOOD, 1.0)
+            ant.score += 1
             ant.carrying = False
             ant.last_action_ok = True
         else:

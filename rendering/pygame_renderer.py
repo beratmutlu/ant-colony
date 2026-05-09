@@ -46,7 +46,7 @@ class PygameRenderer:
 
             for ant in self.sim.manager.ants:
                 x, y = ant.cell.pos
-                color = (255, 200, 0) if ant.cell.pos else (255, 255, 255)
+                color = (255, 200, 0) if ant.carrying else (255, 255, 255)
                 pygame.draw.circle(screen, color,
                     (x*CELL + CELL//2, y*CELL + CELL//2), CELL//3)
 

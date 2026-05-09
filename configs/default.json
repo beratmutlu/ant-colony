@@ -1,0 +1,18 @@
+{
+    "seed": 42,
+    "grid": {
+        "width": 20,
+        "height": 20
+    },
+    "ants": {
+        "n": 2,
+        "energy": 100.0,
+        "determinism": 100.0
+    },
+    "nest_pos": [10, 10],
+    "ph_strength": 10.0,
+    "food_sources": [
+        {"pos": [2, 2], "amount": 200.0},
+        {"pos": [18, 18], "amount": 200.0}
+    ]
+}

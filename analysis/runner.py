@@ -10,8 +10,8 @@ from analysis.logger import Logger
 @dataclass
 class RunConfig:
     max_ticks: int = 50000
-    convergence_window: int = 50
-    convergence_epsilon: float = 0.1
+    convergence_window: int = 10
+    convergence_epsilon: float = 0.15
     log_dir: Path | None = Path("logs")
 
 
@@ -37,20 +37,28 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
 
     logged_convergence = False
 
+    epoch_size = 50
+    epoch_food = 0
+
     for _ in range(run_cfg.max_ticks):
         sim.step()
         tick = sim.manager.tick
         delivered = sim.manager.food_delivered_this_tick
         score_history.append(delivered)
-        tracker.update(tick, delivered)
+        epoch_food += delivered
 
-        if tick % tracker.window == 0:
+
+        if tick % epoch_size == 0 and tick > 0:
+            tracker.update(tick, epoch_food)
+
             logger.log(tick, "summary",
                 score=sim.manager.score,
                 ants_alive=len(sim.manager.ants),
                 delivered_last_window=sum(score_history[-tracker.window:]),
                 stable=tracker.stable
             )
+            epoch_food = 0
+
         if tracker.converged and not logged_convergence:
             logger.log(tick, "convergence", convergence_tick=tracker.convergence_tick)
             logged_convergence = True

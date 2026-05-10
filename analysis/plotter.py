@@ -58,7 +58,7 @@ class Plotter:
             avg_conv = statistics.mean(conv_tick)
             ax.axvline(avg_conv, linestyle="--", color="red", label=f"avg convergence@{avg_conv: .0f}")
 
-        ax.set_title("Merged Score (mean ± std")
+        ax.set_title("Merged Score (mean ± std)")
         ax.set_xlabel("Tick")
         ax.set_ylabel("Cumulative Score")
         ax.legend()

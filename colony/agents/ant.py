@@ -53,7 +53,6 @@ class Ant:
         for d in passable:
             ph = percept.neighbor_pheromones.get(d, {})
             attraction = max(ph.get(attract, 0.0), 1e-6) ** alpha
-            repulsion  = max(ph.get(repel, 0.0), 1e-6) ** alpha
-            weights.append(attraction / repulsion)
+            weights.append(attraction)
 
         return random.choices(passable, weights=weights)[0]

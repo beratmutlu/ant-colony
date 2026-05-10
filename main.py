@@ -1,37 +1,28 @@
-import copy
-import multiprocessing as mp
 from colony.core.simulation import Simulation
 from rendering.pygame_renderer import PygameRenderer
-
-def run_headless(config: dict) -> dict:
-    sim = Simulation()
-    sim.load_dict(config)
-    sim.build()
-    sim.run(1000)
-    return {"seed": config["seed"], "score": sim.manager.score}
+from analysis.runner import BatchRunner, RunConfig
+from analysis.plotter import Plotter
+from pathlib import Path
 
 if __name__ == "__main__":
     base = Simulation()
     base.load("configs/default.json")
-    base_config = base.config
 
-    seeds = [123, 7, 99]
+    future = (
+        BatchRunner(base.config)
+        .add_sweep("seed", [42, 123, 7, 99])
+        .run()
+    )
 
-    headless_configs = []
-    for seed in seeds:
-        cfg = copy.deepcopy(base_config)
-        cfg["seed"] = seed
-        headless_configs.append(cfg)
+    sim = Simulation()
+    sim.load_dict(base.config)
+    sim.build()
+    PygameRenderer(sim).run()
 
-    with mp.Pool() as pool:
-        future = pool.map_async(run_headless, headless_configs)
-
-        sim = Simulation()
-        sim.load_dict(base_config)
-        sim.build()
-        PygameRenderer(sim).run()
-
-        results = future.get()
-
+    results = future.get()
     for r in results:
-        print(f"seed={r['seed']}  score={r['score']}")
+        print(f"{r.label}  score={r.final_score}  converged@{r.convergence_tick}")
+
+    plotter = Plotter(results)
+    plotter.plot()
+    plotter.plot_summaries(Path("logs"))

@@ -17,7 +17,7 @@ class Manager:
         self.ants: list[Ant] = [
             Ant(grid.get_cell(*nest_pos), energy=self.ant_energy, determinism=determinism) for _ in range(n_ants)
         ]
-
+        self.score = 0
     def tick_clock(self) -> None:
         self.tick += 1
 
@@ -77,6 +77,7 @@ class Manager:
                 self._drop(ant)
                 ant.memory.clear()
                 ant.energy = self.ant_energy
+                self.score += 1
 
         for target_pos, competing in moves.items():
             cap = self.grid.get_cell(*target_pos).cap_ant

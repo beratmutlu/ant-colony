@@ -13,6 +13,9 @@ class Simulation:
         with open(path) as file:
             self.config = json.load(file)
 
+    def load_dict(self, config: dict) -> None:
+        self.config = config
+
     def build(self) -> None:
         cfg = self.config
         random.seed(cfg["seed"])

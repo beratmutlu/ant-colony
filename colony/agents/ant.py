@@ -4,7 +4,7 @@ from colony.agents.percept import Percept
 from colony.types.item_type import ItemType
 import random
 
-MEMORY_SIZE = 4
+MEMORY_SIZE = 8
 
 class Ant:
     def __init__(self, cell: Cell, energy: float = 100.0, determinism: float = 50.0):

@@ -100,6 +100,8 @@ class PygameRenderer:
         if self.debug:
             return (20, 20, 20)
 
-        r = int(min(cell.items[ItemType.PHEROMONE_FOOD] / 10 * 255, 255)) if self.show_food_ph else 0
-        b = int(min(cell.items[ItemType.PHEROMONE_NEST] / 10 * 255, 255)) if self.show_nest_ph else 0
+        cap = cell.cap_item
+        r = int(min(cell.items[ItemType.PHEROMONE_FOOD] / cap * 255, 255)) if self.show_food_ph else 0
+        b = int(min(cell.items[ItemType.PHEROMONE_NEST] / cap * 255, 255)) if self.show_nest_ph else 0
+
         return (r, 10, b)

@@ -57,7 +57,3 @@ class Ant:
             weights.append(attraction / repulsion)
 
         return random.choices(passable, weights=weights)[0]
-
-
-
-

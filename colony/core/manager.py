@@ -25,10 +25,12 @@ class Manager:
 
         for ant, percept in percepts.items():
             ant.sense(percept)
+            ant.energy -= 1
 
         actions = {ant: ant.reason() for ant in self.ants}
 
         self._process_action(actions)
+        self.ants = [ant for ant in self.ants if ant.energy > 0]
         self.grid.tick_decay()
 
 
@@ -70,9 +72,11 @@ class Manager:
             elif action.type == ActionType.PICK_UP:
                 self._pick_up(ant)
                 ant.memory.clear()
+                ant.energy = self.ant_energy
             elif action.type == ActionType.DROP:
                 self._drop(ant)
                 ant.memory.clear()
+                ant.energy = self.ant_energy
 
         for target_pos, competing in moves.items():
             cap = self.grid.get_cell(*target_pos).cap_ant

@@ -12,7 +12,7 @@ class ItemType(Enum):
     @property
     def decay_rate(self) -> float:
         rates = {
-            ItemType.PHEROMONE_FOOD: 0.1,
-            ItemType.PHEROMONE_NEST: 0.1,
+            ItemType.PHEROMONE_FOOD: .2,
+            ItemType.PHEROMONE_NEST: .2,
         }
         return rates.get(self, 0.0)

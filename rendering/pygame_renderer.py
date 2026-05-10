@@ -4,7 +4,7 @@ from colony.types.item_type import ItemType
 import math
 
 CELL = 24
-FPS = 10
+FPS = 30
 
 class PygameRenderer:
     def __init__(self, sim: Simulation):
@@ -77,8 +77,8 @@ class PygameRenderer:
 
             if self.show_gradient:
                 for (x, y), cell in self.sim.manager.grid.cells.items():
-                    if x % 2 != 0 or y % 2 != 0:
-                        continue
+                    if ((x+y) % 2) != 0:
+                        continue    
                     self._draw_gradient_arrow(screen, cell, x, y)
 
             for ant in self.sim.manager.ants:

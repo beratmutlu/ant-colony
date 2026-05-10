@@ -9,7 +9,7 @@ from analysis.logger import Logger
 
 @dataclass
 class RunConfig:
-    max_ticks: int = 10000
+    max_ticks: int = 50000
     convergence_window: int = 50
     convergence_epsilon: float = 0.1
     log_dir: Path | None = Path("logs")

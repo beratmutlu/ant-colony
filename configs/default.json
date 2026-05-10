@@ -5,12 +5,12 @@
         "height": 20
     },
     "ants": {
-        "n": 7,
-        "energy": 100.0,
-        "determinism": 99.0
+        "n": 20,
+        "energy": 200.0,
+        "determinism": 70.0
     },
     "nest_pos": [10, 10],
-    "ph_strength": 10.0,
+    "ph_strength": 50.0,
     "food_sources": [
         {"pos": [2, 2], "amount": 200.0},
         {"pos": [18, 18], "amount": 200.0}

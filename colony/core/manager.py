@@ -59,6 +59,11 @@ class Manager:
             nest_adjacent={
                 d: (n_cell is not None and n_cell.pos == self.nest_pos)
                 for d, n_cell in neighbors.items()
+            },
+
+            food_adjacent={
+                d: (n_cell is not None and n_cell.get_food() > 0.0)
+                for d, n_cell in neighbors.items()
             }
         )
 
@@ -97,8 +102,10 @@ class Manager:
             ant.last_action_ok = False
             return
 
+        ant.route_len += 1
+
         ph_type = ItemType.PHEROMONE_FOOD if ant.carrying else ItemType.PHEROMONE_NEST
-        ant.cell.add_item(ph_type, self.ph_strength)
+        self.grid.get_cell(*target_pos).add_item(ph_type, self.ph_strength / ant.route_len)
 
         ant.memory.append(target_pos)
         if len(ant.memory) > MEMORY_SIZE:
@@ -106,12 +113,14 @@ class Manager:
 
         ant.cell = target_cell
         ant.last_action_ok = True
+        
 
     def _pick_up(self, ant: Ant) -> None:
         if ant.cell.items[ItemType.FOOD] > 0:
-            ant.cell.remove_item(ItemType.FOOD, 1.0) # amount
+            ant.cell.remove_item(ItemType.FOOD, 0.0) # amount
             ant.carrying = True
             ant.last_action_ok = True
+            ant.route_len = 0
         else:
             ant.last_action_ok = False
 
@@ -121,6 +130,7 @@ class Manager:
             self.score += 1
             self.food_delivered_this_tick += 1
             ant.carrying = False
+            ant.route_len = 0
             ant.last_action_ok = True
         else:
             ant.last_action_ok = False

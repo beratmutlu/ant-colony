@@ -16,3 +16,4 @@ class Percept:
     neighbors_passable: dict[Direction, bool]
 
     nest_adjacent: dict[Direction, bool]
+    food_adjacent: dict[Direction, bool]

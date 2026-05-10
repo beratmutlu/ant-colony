@@ -16,6 +16,7 @@ class Ant:
         self.memory: list[tuple[int ,int]] = []
         self.determinism = determinism
         self._last_percept = None
+        self.route_len = 0
 
     def sense(self, percept: Percept) -> None:
         self._last_percept = percept
@@ -35,15 +36,22 @@ class Ant:
                     if random.random() < 0.95:
                         return Action(ActionType.MOVE, d)
 
-            direction = self._follow_gradient(p, ItemType.PHEROMONE_NEST, ItemType.PHEROMONE_FOOD)
+            direction = self._follow_gradient(p, ItemType.PHEROMONE_NEST)
             return Action(ActionType.MOVE, direction)
 
-        direction = self._follow_gradient(p, ItemType.PHEROMONE_FOOD, ItemType.PHEROMONE_NEST)
+        for d, ok in p.food_adjacent.items():
+            if ok:
+                if random.random() < 0.95:
+                    return Action(ActionType.MOVE, d)
+        
+        direction = self._follow_gradient(p, ItemType.PHEROMONE_FOOD)
         return Action(ActionType.MOVE, direction)
 
-    def _follow_gradient(self, percept: Percept, attract: ItemType, repel: ItemType) -> Direction:
+    def _follow_gradient(self, percept: Percept, attract: ItemType) -> Direction:
         passable = [d for d, ok in percept.neighbors_passable.items()
                     if ok and d.apply(self.cell.pos) not in self.memory]
+        if not passable:
+            passable = [d for d, ok in percept.neighbors_passable.items() if ok]
         if not passable:
             return None
 

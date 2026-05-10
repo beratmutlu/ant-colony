@@ -23,7 +23,7 @@ class Cell:
 
     def decay_item(self, item: ItemType) -> None:
         if item.decays:
-            self.items[item] = max(self.items[item] - item.decay_rate, 0.0)
+            self.items[item] = max(self.items[item] * item.decay_rate, 0.0)
 
     def decay_all(self) -> None:
         for item in self.items:

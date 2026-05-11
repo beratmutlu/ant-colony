@@ -1,3 +1,6 @@
+web/colony
+web/rendering
+
 # Python
 __pycache__/
 *.py[cod]

@@ -5,7 +5,7 @@ from colony.types.item_type import ItemType
 import math
 
 CELL = 24
-FPS = 30
+FPS = 15
 
 class PygameRenderer:
     def __init__(self, sim: Simulation):

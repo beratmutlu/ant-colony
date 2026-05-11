@@ -5,7 +5,7 @@ async def main():
     CONFIG = {
         "seed": 42,
         "grid": {"width": 20, "height": 20},
-        "ants": {"n": 50, "energy": 300.0, "determinism": 70.0},
+        "ants": {"n": 20, "energy": 300.0, "determinism": 70.0},
         "nest_pos": [10, 10],
         "ph_strength": 50.0,
         "food_sources": [

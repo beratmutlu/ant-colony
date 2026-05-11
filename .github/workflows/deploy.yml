@@ -9,6 +9,10 @@ permissions:
   pages: write
   id-token: write
 
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -26,14 +30,30 @@ jobs:
       - name: Install Pygbag
         run: pip install pygbag
 
-      - name: Copy shared assets
+      - name: Copy shared modules into web/
         run: |
           cp -r colony web/colony
-          cp -r configs web/configs
           cp -r rendering web/rendering
 
-      - name: Build
-        run: python -m pygbag --build web/
+      - name: Verify web/ structure
+        run: |
+          echo "=== web/ contents ==="
+          find web/ -type f -name "*.py" | sort
+          echo "=== end ==="
+
+      - name: Build with pygbag
+        run: python -m pygbag --build web
+
+      - name: Verify build output
+        run: |
+          echo "=== build output ==="
+          ls -la web/build/web/
+          echo "=== archive contents ==="
+          tar -tzf web/build/web/web.tar.gz || python3 -c "
+          import zipfile, sys
+          with zipfile.ZipFile('web/build/web/web.apk') as z:
+              z.printdir()
+          "
 
       - uses: actions/upload-pages-artifact@v3
         with:

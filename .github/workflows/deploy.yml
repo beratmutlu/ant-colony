@@ -28,7 +28,7 @@ jobs:
           python-version: "3.10"
 
       - name: Install Pygbag
-        run: pip install pygbag
+        run: pip install pygbag==0.9.2
 
       - name: Copy shared modules into web/
         run: |
@@ -42,7 +42,7 @@ jobs:
           echo "=== end ==="
 
       - name: Build with pygbag
-        run: python -m pygbag --build web
+        run: python -m pygbag --build --cdn https://pygame-web.github.io/archives/0.9/ web
 
       - name: Verify build output
         run: |

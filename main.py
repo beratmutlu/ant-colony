@@ -1,6 +1,8 @@
+import asyncio
+
 from colony.core.simulation import Simulation
 from rendering.pygame_renderer import PygameRenderer
-from analysis.runner import BatchRunner, RunConfig
+from analysis.runner import BatchRunner
 from analysis.plotter import Plotter
 from pathlib import Path
 
@@ -17,7 +19,7 @@ if __name__ == "__main__":
     sim = Simulation()
     sim.load_dict(base.config)
     sim.build()
-    PygameRenderer(sim).run()
+    asyncio.run(PygameRenderer(sim).run())
 
     results = future.get()
     for r in results:

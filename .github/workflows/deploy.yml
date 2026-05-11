@@ -1,0 +1,43 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Pygbag
+        run: pip install pygbag
+
+      - name: Copy shared assets
+        run: |
+          cp -r colony web/colony
+          cp -r configs web/configs
+          cp -r rendering web/rendering
+
+      - name: Build
+        run: python -m pygbag --build web/
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/build/web
+
+      - uses: actions/deploy-pages@v4
+        id: deployment

@@ -1,3 +1,4 @@
+import asyncio
 import pygame
 from colony.core.simulation import Simulation
 from colony.types.item_type import ItemType
@@ -45,7 +46,7 @@ class PygameRenderer:
         ex, ey = cx + dx*(CELL//2 - 1), cy + dy*(CELL//2 - 1)
         self._draw_arrow(screen, (255, 255, 0), (cx, cy), (ex, ey))
 
-    def run(self):
+    async def run(self):
         pygame.init()
         screen = pygame.display.set_mode((self.W * CELL, self.H * CELL))
         pygame.display.set_caption("AntSim")
@@ -78,7 +79,7 @@ class PygameRenderer:
             if self.show_gradient:
                 for (x, y), cell in self.sim.manager.grid.cells.items():
                     if ((x+y) % 2) != 0:
-                        continue    
+                        continue
                     self._draw_gradient_arrow(screen, cell, x, y)
 
             for ant in self.sim.manager.ants:
@@ -89,6 +90,7 @@ class PygameRenderer:
 
             pygame.display.flip()
             clock.tick(FPS)
+            await asyncio.sleep(0)
 
     def _cell_color(self, cell) -> tuple:
         if cell.pos == self.nest:

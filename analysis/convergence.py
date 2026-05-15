@@ -8,9 +8,8 @@ class OnlineConvergenceTracker:
     window: int = 10
     min_epochs: int = 30
 
-    # Local stability: recent window must be calm and productive enough.
+    # Local stability: recent window must be calm.
     epsilon: float = 0.01 # CV^2 = var / mean^2
-    min_mean: float = 30.0
     max_slope: float = 1.0
 
     # Drift checks: reject locally calm windows that are still changing.
@@ -33,8 +32,9 @@ class OnlineConvergenceTracker:
 
     def _is_stable(self, window_data: list[int]) -> bool:
         m = statistics.mean(window_data)
-        if m < self.min_mean:
+        if m == 0:
             return False
+        
         cv_squared = statistics.variance(window_data) / (m ** 2)
         slope = self._slope(window_data)
 

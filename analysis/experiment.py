@@ -25,6 +25,8 @@ class ExperimentResult:
     convergence_epoch: int | None
     convergence_tick: int | None
     final_score: int
+    plateau_ranges: list[tuple[int, int]] = field(default_factory=list)
+    active_plateau_start: int | None = None
     score_history: list[int] = field(default_factory=list)
     epoch_history: list[int] = field(default_factory=list)
     ants_alive_history: list[int] = field(default_factory=list)

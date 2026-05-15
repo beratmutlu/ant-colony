@@ -50,6 +50,7 @@ class ExperimentPlotter:
         """Generate all comparison plots, save PNGs and a text report."""
         self._plot_performance_dashboard()
         self._plot_convergence_summary()
+        self._plot_plateau_ranges()
         self._write_text_report()
         if show:
             plt.show()
@@ -63,7 +64,7 @@ class ExperimentPlotter:
         )
         self._style(axes)
 
-        self._panel_cumulative_score(axes[0, 0])
+        self._panel_cumulative_deviation(axes[0, 0])
         self._panel_food_per_epoch(axes[0, 1])
         self._panel_colony_size(axes[1, 0])
         self._panel_avg_energy(axes[1, 1])
@@ -74,18 +75,25 @@ class ExperimentPlotter:
             dpi=150, bbox_inches="tight",
         )
 
-    def _panel_cumulative_score(self, ax) -> None:
+    def _panel_cumulative_deviation(self, ax) -> None:
         for r in self.results:
-            cum = list(np.cumsum(r.epoch_history))
-            epochs = range(1, len(cum) + 1)
-            ax.plot(epochs, cum, color=self._colors[r.label],
+            if not r.epoch_history:
+                continue
+
+            cum = np.cumsum(r.epoch_history)
+            epochs = np.arange(1, len(cum) + 1)
+            expected = epochs * (cum[-1] / len(cum))
+            deviation = cum - expected
+
+            ax.plot(epochs, deviation, color=self._colors[r.label],
                     label=r.label, linewidth=1.8)
             if r.convergence_epoch:
                 ax.axvline(r.convergence_epoch, color=self._colors[r.label],
                            linestyle="--", alpha=0.4)
-        ax.set_title("Cumulative Score", fontsize=11, fontweight="bold")
+        ax.axhline(0, color="black", linewidth=1.1, alpha=0.75)
+        ax.set_title("Deviation From Average Cumulative Trend", fontsize=11, fontweight="bold")
         ax.set_xlabel("Epoch")
-        ax.set_ylabel("Total Food Delivered")
+        ax.set_ylabel("Food Ahead/Behind Own Average Pace")
         ax.legend(fontsize=8, loc="upper left")
 
     def _panel_food_per_epoch(self, ax) -> None:
@@ -196,6 +204,48 @@ class ExperimentPlotter:
             dpi=150, bbox_inches="tight",
         )
 
+    def _plot_plateau_ranges(self) -> None:
+        fig, ax = plt.subplots(figsize=(16, 4))
+        self._style(ax)
+
+        labels = [r.label for r in self.results]
+        y_positions = range(len(self.results))
+
+        for y, r in zip(y_positions, self.results):
+            color = self._colors[r.label]
+            for start, end in r.plateau_ranges:
+                width = max(end - start, 1)
+                ax.broken_barh(
+                    [(start, width)],
+                    (y - 0.35, 0.7),
+                    facecolors=color,
+                    edgecolors="black",
+                    alpha=0.65,
+                    linewidth=0.7,
+                )
+                ax.text(
+                    start + width / 2,
+                    y,
+                    f"{start}-{end}",
+                    ha="center",
+                    va="center",
+                    fontsize=8,
+                    color="white",
+                )
+
+        max_epoch = max((r.epochs_run for r in self.results), default=1)
+        ax.set_xlim(0, max_epoch)
+        ax.set_yticks(list(y_positions))
+        ax.set_yticklabels(labels, fontsize=8)
+        ax.set_xlabel("Epoch")
+        ax.set_title("Detected Stable Plateau Ranges", fontsize=12, fontweight="bold")
+
+        plt.tight_layout()
+        fig.savefig(
+            self.output_dir / "plateau_ranges.png",
+            dpi=150, bbox_inches="tight",
+        )
+
     # text report
     def _write_text_report(self) -> None:
         lines: list[str] = []
@@ -224,6 +274,15 @@ class ExperimentPlotter:
                 f"{r.label:<25} {r.final_score:>8} {r.ticks_run:>8} "
                 f"{r.epochs_run:>8} {conv:>8} {eff:>10} {ants:>6}"
             )
+
+        lines.append("")
+        lines.append("--- Detected Plateau Ranges ---")
+        for r in self.results:
+            if r.plateau_ranges:
+                ranges = ", ".join(f"{start}-{end}" for start, end in r.plateau_ranges)
+            else:
+                ranges = "N/A"
+            lines.append(f"{r.label:<25} {ranges}")
 
         lines.append("")
         lines.append("--- Epoch Food Statistics ---")
@@ -270,3 +329,8 @@ class ExperimentPlotter:
             ax.spines["right"].set_visible(False)
             ax.grid(True, alpha=0.3, linestyle="--")
             ax.tick_params(labelsize=9)
+
+    def _shade_plateau_ranges(self, ax, result: ExperimentResult) -> None:
+        color = self._colors[result.label]
+        for start, end in result.plateau_ranges:
+            ax.axvspan(start, end, color=color, alpha=0.06, linewidth=0)

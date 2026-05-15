@@ -12,14 +12,13 @@ class Manager:
         self.nest_pos = nest_pos
         self.ph_strength = ph_strength
         self.tick = 0
+        self.food_delivered_this_tick = 0
+        self.score = 0
         self.determinism = determinism
         self.ant_energy = ant_energy
-        self.score = 0
-        self.food_delivered_this_tick = 0
         self.ants: list[Ant] = [
             Ant(grid.get_cell(*nest_pos), energy=self.ant_energy, determinism=determinism) for _ in range(n_ants)
         ]
-        self.score = 0
     def tick_clock(self) -> None:
         self.tick += 1
         self.food_delivered_this_tick = 0
@@ -66,8 +65,6 @@ class Manager:
                 for d, n_cell in neighbors.items()
             }
         )
-
-
 
 
     def _process_action(self, actions: dict[Ant, Action]) -> None:
@@ -127,7 +124,7 @@ class Manager:
     def _drop(self, ant: Ant) -> None:
         if ant.carrying:
             ant.score += 1
-            self.score += 1
+            self.score+= 1
             self.food_delivered_this_tick += 1
             ant.carrying = False
             ant.route_len = 0

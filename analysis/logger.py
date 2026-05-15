@@ -15,8 +15,11 @@ class Logger:
         else:
             self._file = sys.stdout
 
-    def log(self, tick: int, event: str, **kwargs) -> None:
+    def log(self, tick: int, event: str, *, epoch: int | None = None, **kwargs) -> None:
         entry = {"tick": tick, "label": self.label, "event": event, **kwargs}
+        if epoch is not None:
+            entry["epoch"] = epoch
+
         self._file.write(json.dumps(entry) + "\n")
         self._file.flush()
 

@@ -22,7 +22,13 @@ class ExperimentConfig:
 class ExperimentResult:
     label: str
     config: dict
+    convergence_epoch: int | None
     convergence_tick: int | None
     final_score: int
     score_history: list[int] = field(default_factory=list)
+    epoch_history: list[int] = field(default_factory=list)
+    ants_alive_history: list[int] = field(default_factory=list)
+    avg_energy_history: list[float] = field(default_factory=list)
+    carrying_ratio_history: list[float] = field(default_factory=list)
     ticks_run: int = 0
+    epochs_run: int = 0

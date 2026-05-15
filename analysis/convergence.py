@@ -4,11 +4,11 @@ import statistics
 
 @dataclass
 class ConvergenceTracker:
-    window: int = 50
-    epsilon: float = 0.15 # CV^2 = var / mean^2
+    window: int = 10
+    epsilon: float = 0.01 # CV^2 = var / mean^2
     min_mean: float = 30.0
     history: list[int] = field(default_factory=list)
-    convergence_tick: int | None = None
+    convergence_epoch: int | None = None
 
     def _is_stable(self, window_data: list[int]) -> bool:
         m = statistics.mean(window_data)
@@ -17,20 +17,20 @@ class ConvergenceTracker:
         cv_squared = statistics.variance(window_data) / (m ** 2)
         return cv_squared < self.epsilon
 
-    def update(self, tick: int, food_delivered_this_tick: int) -> None:
-        self.history.append(food_delivered_this_tick)
+    def update(self, epoch: int, food_this_epoch: int) -> None:
+        self.history.append(food_this_epoch)
 
-        if self.convergence_tick is not None:
+        if self.convergence_epoch is not None:
             return
 
         if len(self.history) >= self.window:
             if self._is_stable(self.history[-self.window:]):
-                self.convergence_tick = tick
+                self.convergence_epoch = epoch
 
 
     @property
     def converged(self) -> bool:
-        return self.convergence_tick is not None
+        return self.convergence_epoch is not None
 
     @property
     def stable(self) -> bool:
@@ -40,4 +40,4 @@ class ConvergenceTracker:
 
     def reset(self) -> None:
         self.history.clear()
-        self.convergence_tick = None
+        self.convergence_epoch = None

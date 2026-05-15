@@ -6,7 +6,7 @@ from multiprocessing import Pool
 
 from colony.core.simulation import Simulation
 from analysis.experiment import ExperimentConfig, ExperimentResult
-from analysis.convergence import ConvergenceTracker
+from analysis.convergence import OnlineConvergenceTracker
 from analysis.logger import Logger
 
 @dataclass
@@ -26,7 +26,7 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
     sim.load_dict(config)
     sim.build()
 
-    tracker = ConvergenceTracker(
+    tracker = OnlineConvergenceTracker(
         window=run_cfg.convergence_window,
         epsilon=run_cfg.convergence_epsilon,
     )
@@ -60,7 +60,12 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
             epoch += 1
             epoch_history.append(epoch_food)
 
+            previous_plateau_start = tracker.active_plateau_start
             tracker.update(epoch, epoch_food)
+            if previous_plateau_start is None and tracker.active_plateau_start is not None:
+                logger.log(tick, "plateau_start", epoch=tracker.active_plateau_start)
+            elif previous_plateau_start is not None and tracker.active_plateau_start is None:
+                logger.log(tick, "plateau_end", epoch=tracker.plateau_ranges[-1][1])
 
             ants = sim.manager.ants
             n_alive = len(ants)
@@ -94,12 +99,17 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
             break
 
     logger.close()
+    plateau_ranges = list(tracker.plateau_ranges)
+    if tracker.active_plateau_start is not None:
+        plateau_ranges.append((tracker.active_plateau_start, epoch))
 
     return ExperimentResult(
         label=exp_cfg.label,
         config=config,
         convergence_epoch=tracker.convergence_epoch,
         convergence_tick=convergence_tick,
+        plateau_ranges=plateau_ranges,
+        active_plateau_start=tracker.active_plateau_start,
         final_score=sim.manager.score,
         score_history=score_history,
         epoch_history=epoch_history,

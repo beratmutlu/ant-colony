@@ -5,7 +5,7 @@ from colony.types.item_type import ItemType
 import math
 
 CELL = 24
-FPS = 15
+FPS = 60
 
 class PygameRenderer:
     def __init__(self, sim: Simulation):
@@ -46,6 +46,12 @@ class PygameRenderer:
         ex, ey = cx + dx*(CELL//2 - 1), cy + dy*(CELL//2 - 1)
         self._draw_arrow(screen, (255, 255, 0), (cx, cy), (ex, ey))
 
+    def _draw_x(self, screen, pos: tuple[int, int]) -> None:
+        x, y = pos
+        rect = pygame.Rect(x * CELL, y * CELL, CELL - 1, CELL - 1)
+        pygame.draw.line(screen, (230, 70, 70), rect.topleft, rect.bottomright, 2)
+        pygame.draw.line(screen, (230, 70, 70), rect.topright, rect.bottomleft, 2)
+    
     async def run(self):
         pygame.init()
         screen = pygame.display.set_mode((self.W * CELL, self.H * CELL))
@@ -75,6 +81,11 @@ class PygameRenderer:
             for (x, y), cell in self.sim.manager.grid.cells.items():
                 color = self._cell_color(cell)
                 pygame.draw.rect(screen, color, (x*CELL, y*CELL, CELL-1, CELL-1))
+
+            if self.debug:
+                for pos, cell in self.sim.manager.grid.cells.items():
+                    if cell.cap_ant <= 0:
+                        self._draw_x(screen, pos)
 
             if self.show_gradient:
                 for (x, y), cell in self.sim.manager.grid.cells.items():

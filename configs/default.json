@@ -1,4 +1,6 @@
-{
+{   
+    "comment": "This is a description",
+
     "seed": 42,
     "grid": {
         "width": 20,
@@ -11,8 +13,34 @@
     },
     "nest_pos": [10, 10],
     "ph_strength": 50.0,
+    "food": {
+        "pickup_fraction": 0.01,
+        "depletion_threshold": 0.001
+    },
     "food_sources": [
         {"pos": [2, 2], "amount": 200.0},
         {"pos": [18, 18], "amount": 200.0}
+    ],
+    "events": [
+        {
+            "tick": 1000,
+            "type": "set_ant_capacity",
+            "cells": [[16, 16], [15, 16], [14, 16]],
+            "value": 0
+        }
+    ],
+    "ant_capacity_overrides": [
+        {
+        "value": 0,
+        "cells": [[1, 1], [2, 2], [3, 3], [4, 4], [5, 5]]
+        }
+    ],
+    "initial_pheromones": [
+        {
+            "type": "PHEROMONE_FOOD",
+            "amount": 50.0,
+            "cells": [[6, 6], [7, 7], [8, 8]]
+        }
     ]
+        
 }

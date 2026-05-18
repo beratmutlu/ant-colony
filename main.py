@@ -23,10 +23,12 @@ def main() -> None:
     parser.add_argument("--no-show", action="store_true", help="Save plots without showing")
     parser.add_argument("--sequential", action="store_true", help="Run sequentially (debug)")
     parser.add_argument("--visualize", action="store_true", help="Launch baseline sim in pygame")
+    parser.add_argument("--config-dir", type=str, default="configs/experiments", help="Select the set of experiment configurations to simulate")
     args = parser.parse_args()
 
     seed = args.seed
-    config_dir = Path("configs/experiments")
+
+    config_dir = Path(args.config_dir)
     output_dir = Path(f"results/seed_{seed}")
 
     print(f"═══ Ant Colony Experiment Runner ═══")

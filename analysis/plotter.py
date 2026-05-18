@@ -4,6 +4,7 @@ from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.lines import Line2D
 
 from analysis.experiment import ExperimentResult
 
@@ -91,10 +92,11 @@ class ExperimentPlotter:
                 ax.axvline(r.convergence_epoch, color=self._colors[r.label],
                            linestyle="--", alpha=0.4)
         ax.axhline(0, color="black", linewidth=1.1, alpha=0.75)
+        self._draw_event_markers(ax)
         ax.set_title("Deviation From Average Cumulative Trend", fontsize=11, fontweight="bold")
         ax.set_xlabel("Epoch")
         ax.set_ylabel("Food Ahead/Behind Own Average Pace")
-        ax.legend(fontsize=8, loc="upper left")
+        self._add_event_legend(ax, loc="upper left")
 
     def _panel_food_per_epoch(self, ax) -> None:
         for r in self.results:
@@ -111,10 +113,11 @@ class ExperimentPlotter:
             else:
                 ax.plot(epochs, r.epoch_history, color=self._colors[r.label],
                         label=r.label, linewidth=1.8)
+        self._draw_event_markers(ax)
         ax.set_title("Food per Epoch (smoothed)", fontsize=11, fontweight="bold")
         ax.set_xlabel("Epoch")
         ax.set_ylabel("Food Delivered")
-        ax.legend(fontsize=8)
+        self._add_event_legend(ax)
 
     def _panel_colony_size(self, ax) -> None:
         for r in self.results:
@@ -122,10 +125,11 @@ class ExperimentPlotter:
                 ax.plot(range(1, len(r.ants_alive_history) + 1),
                         r.ants_alive_history, color=self._colors[r.label],
                         label=r.label, linewidth=1.8)
+        self._draw_event_markers(ax)
         ax.set_title("Colony Size", fontsize=11, fontweight="bold")
         ax.set_xlabel("Epoch")
         ax.set_ylabel("Ants Alive")
-        ax.legend(fontsize=8)
+        self._add_event_legend(ax)
 
     def _panel_avg_energy(self, ax) -> None:
         for r in self.results:
@@ -133,10 +137,11 @@ class ExperimentPlotter:
                 ax.plot(range(1, len(r.avg_energy_history) + 1),
                         r.avg_energy_history, color=self._colors[r.label],
                         label=r.label, linewidth=1.8)
+        self._draw_event_markers(ax)
         ax.set_title("Average Ant Energy", fontsize=11, fontweight="bold")
         ax.set_xlabel("Epoch")
         ax.set_ylabel("Energy")
-        ax.legend(fontsize=8)
+        self._add_event_legend(ax)
 
     # convergence / summary bars (1×3)
     def _plot_convergence_summary(self) -> None:
@@ -234,11 +239,13 @@ class ExperimentPlotter:
                 )
 
         max_epoch = max((r.epochs_run for r in self.results), default=1)
+        self._draw_event_markers(ax)
         ax.set_xlim(0, max_epoch)
         ax.set_yticks(list(y_positions))
         ax.set_yticklabels(labels, fontsize=8)
         ax.set_xlabel("Epoch")
         ax.set_title("Detected Stable Plateau Ranges", fontsize=12, fontweight="bold")
+        self._add_event_legend(ax, loc="upper right")
 
         plt.tight_layout()
         fig.savefig(
@@ -334,3 +341,59 @@ class ExperimentPlotter:
         color = self._colors[result.label]
         for start, end in result.plateau_ranges:
             ax.axvspan(start, end, color=color, alpha=0.06, linewidth=0)
+
+    def _draw_event_markers(self, ax) -> None:
+        for result in self.results:
+            for event in result.config.get("events", []):
+                tick = event.get("tick")
+                if tick is None:
+                    continue
+
+                epoch = self._event_epoch(result, tick)
+
+                ax.axvline(
+                    epoch,
+                    color=self._colors[result.label],
+                    linestyle=self._event_line_style(event),
+                    linewidth=1.4,
+                    alpha=0.75,
+                )
+
+    def _event_epoch(self, result: ExperimentResult, tick: int) -> float:
+        epoch_size = result.epoch_size
+        if epoch_size <= 0 and result.epochs_run > 0:
+            epoch_size = max(result.ticks_run / result.epochs_run, 1)
+        return tick / max(epoch_size, 1)
+
+    def _event_line_style(self, event: dict) -> str:
+        event_type = event.get("type")
+        if event_type == "set_ant_capacity":
+            return "--"
+        if event_type == "clear_pheromones":
+            return ":"
+        return "-."
+
+    def _add_event_legend(self, ax, loc: str | None = None) -> None:
+        handles, labels = ax.get_legend_handles_labels()
+
+        if not self._has_events():
+            if handles:
+                ax.legend(handles, labels, fontsize=8, loc=loc)
+            return
+
+        event_handles = [
+            Line2D([0], [0], color="black", linestyle="--", linewidth=1.4),
+            Line2D([0], [0], color="black", linestyle=":", linewidth=1.4),
+        ]
+        event_labels = ["-- set_ant_capacity", ": clear_pheromones"]
+
+        existing = set(labels)
+        for handle, label in zip(event_handles, event_labels):
+            if label not in existing:
+                handles.append(handle)
+                labels.append(label)
+
+        ax.legend(handles, labels, fontsize=8, loc=loc)
+
+    def _has_events(self) -> bool:
+        return any(r.config.get("events") for r in self.results)

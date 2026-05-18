@@ -34,3 +34,4 @@ class ExperimentResult:
     carrying_ratio_history: list[float] = field(default_factory=list)
     ticks_run: int = 0
     epochs_run: int = 0
+    epoch_size: int = 1

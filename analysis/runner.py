@@ -117,7 +117,8 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
         avg_energy_history=avg_energy_history,
         carrying_ratio_history=carrying_ratio_history,
         ticks_run=sim.manager.tick,
-        epochs_run=epoch
+        epochs_run=epoch,
+        epoch_size=run_cfg.epoch_size
     )
 
 

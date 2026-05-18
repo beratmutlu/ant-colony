@@ -21,6 +21,11 @@ class Cell:
     def get_pheromones(self) -> dict[ItemType, float]:
         return {t: v for t, v in self.items.items() if t.decays}
 
+    def clear_pheromones(self) -> None:
+        for item in ItemType:
+            if item.decays:
+                self.items[item] = 0.0
+    
     def decay_item(self, item: ItemType) -> None:
         if item.decays:
             self.items[item] = max(self.items[item] * item.decay_rate, 0.0)

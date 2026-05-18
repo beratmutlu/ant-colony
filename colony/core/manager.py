@@ -49,19 +49,19 @@ class Manager:
 
             nest_present=self.nest_pos == cell.pos,
 
-            neighbors_passable={d: n_cell is not None for d, n_cell in neighbors.items()},
+            neighbors_passable={d: n_cell is not None and n_cell.cap_ant > 0 for d, n_cell in neighbors.items()},
             neighbor_pheromones={
                 d: n_cell.get_pheromones() if n_cell else {}
                 for d, n_cell in neighbors.items()
             },
 
             nest_adjacent={
-                d: (n_cell is not None and n_cell.pos == self.nest_pos)
+                d: (n_cell is not None and n_cell.cap_ant > 0 and n_cell.pos == self.nest_pos)
                 for d, n_cell in neighbors.items()
             },
 
             food_adjacent={
-                d: (n_cell is not None and n_cell.get_food() > 0.0)
+                d: (n_cell is not None and n_cell.get_food() > 0.0 and n_cell.cap_ant > 0)
                 for d, n_cell in neighbors.items()
             }
         )

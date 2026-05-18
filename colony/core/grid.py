@@ -23,6 +23,14 @@ class Grid:
             for d in Direction
         }
 
+    def set_ant_capacity(self, positions, value):
+        for x, y in positions:
+            self.get_cell(x, y).cap_ant = value
+
+    def clear_pheromones(self, positions):
+        for x, y in positions:
+            self.get_cell(x, y).clear_pheromones()
+    
     def tick_decay(self) -> None:
         for cell in self.cells.values():
             cell.decay_all()

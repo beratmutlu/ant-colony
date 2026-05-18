@@ -51,7 +51,7 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
     for _ in range(run_cfg.max_ticks):
         sim.step()
         tick = sim.manager.tick
-        delivered = sim.manager.food_delivered_this_tick
+        delivered = sim.manager.score_this_tick
         score_history.append(delivered)
         epoch_food += delivered
 

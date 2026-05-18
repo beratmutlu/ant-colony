@@ -10,6 +10,7 @@ class Ant:
     def __init__(self, cell: Cell, energy: float = 100.0, determinism: float = 50.0):
         self.cell = cell
         self.energy = energy
+        
         self.score = 0
         self.carrying: bool = False
         self.last_action_ok: bool = True
@@ -17,6 +18,10 @@ class Ant:
         self.determinism = determinism
         self._last_percept = None
         self.route_len = 0
+
+        self.carried_food_amount: float = 0.0
+        self.food_delivered: float = 0.0
+
 
     def sense(self, percept: Percept) -> None:
         self._last_percept = percept

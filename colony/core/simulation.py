@@ -30,18 +30,35 @@ class Simulation:
         
         events = cfg.get("events", [])
         self.events_by_tick = {}
-
         for event in events:
             tick = event["tick"]
             self.events_by_tick.setdefault(tick, []).append(event)
 
+        ant_capacity_overrides = cfg.get("ant_capacity_overrides", [])
+        self._apply_ant_capacity_overrides(grid, ant_capacity_overrides)
+
+        initial_pheromones = cfg.get("initial_pheromones", [])
+        self._apply_initial_pheromones(grid, initial_pheromones)
+
+        food_properties = cfg.get("food", {})
+        food_pickup_fraction = food_properties.get("pickup_fraction", 0.01)
+        food_depletion_threshold = food_properties.get("depletion_threshold", 0.001)
+
+        if not 0 < food_pickup_fraction <= 1:
+            raise ValueError(f"food.pickup_fraction must be > 0 and <= 1, got {food_pickup_fraction}")
+        
+        if food_depletion_threshold < 0:
+            raise ValueError(f"food.depletion_threshold must be >= 0, got {food_depletion_threshold}")
+        
         self.manager = Manager(
             grid=grid,
             n_ants=cfg["ants"]["n"],
             nest_pos=nest_pos,
             ph_strength=cfg["ph_strength"],
             determinism=cfg["ants"]["determinism"],
-            ant_energy=cfg["ants"]["energy"]
+            ant_energy=cfg["ants"]["energy"],
+            food_pickup_fraction=food_pickup_fraction,
+            food_depletion_threshold=food_depletion_threshold
         )
 
     def step(self) -> None:
@@ -66,7 +83,29 @@ class Simulation:
         
         else:
             raise ValueError(f"Unknown event type: {event_type}")
-        
+    
+    def _apply_ant_capacity_overrides(self, grid: Grid, overrides: list[dict]) -> None:
+        for override in overrides:
+            value = override["value"]
+
+            for x, y in override["cells"]:
+                grid.get_cell(x, y).cap_ant = value
+
+    def _apply_initial_pheromones(self, grid: Grid, pheromones: list[dict]) -> None:
+        for pheromone in pheromones:
+            amount = pheromone["amount"]
+
+            try:
+                item_type = ItemType[pheromone["type"]]
+            except KeyError as exc:
+                raise ValueError(f"Unknown item type: {pheromone['type']}") from exc
+            
+            if not item_type.decays:
+                raise ValueError(f"Initial pheromone type must be a pheromone: {item_type.name}")
+            
+            for x, y in pheromone["cells"]:
+                grid.get_cell(x, y).add_item(item_type, amount)
+    
     def run(self, steps: int) -> None:
         for _ in range(steps):
             self.step()

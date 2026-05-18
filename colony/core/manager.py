@@ -7,20 +7,29 @@ from colony.types.item_type import ItemType
 import random
 
 class Manager:
-    def __init__(self, grid: Grid, n_ants: int, nest_pos: tuple[int, int] = (0, 0), ph_strength=100.0, determinism: float = 50.0, ant_energy: float = 100.0):
+    def __init__(self, grid: Grid, n_ants: int, nest_pos: tuple[int, int] = (0, 0), ph_strength=100.0, determinism: float = 50.0, ant_energy: float = 100.0, food_pickup_fraction: float = 0.01, food_depletion_threshold: float = 0.001):
         self.grid = grid
         self.nest_pos = nest_pos
         self.ph_strength = ph_strength
         self.tick = 0
-        self.food_delivered_this_tick = 0
+
+        self.food_delivered = 0.0
+        self.food_delivered_this_tick = 0.0
+
         self.score = 0
+        self.score_this_tick = 0
+
         self.determinism = determinism
         self.ant_energy = ant_energy
+        self.food_pickup_fraction = food_pickup_fraction
+        self.food_depletion_threshold = food_depletion_threshold
         self.ants: list[Ant] = [
             Ant(grid.get_cell(*nest_pos), energy=self.ant_energy, determinism=determinism) for _ in range(n_ants)
         ]
     def tick_clock(self) -> None:
         self.tick += 1
+
+        self.score_this_tick = 0
         self.food_delivered_this_tick = 0
 
         percepts = {ant: self._build_percept(ant) for ant in self.ants}
@@ -113,19 +122,35 @@ class Manager:
         
 
     def _pick_up(self, ant: Ant) -> None:
-        if ant.cell.items[ItemType.FOOD] > 0:
-            ant.cell.remove_item(ItemType.FOOD, 0.0) # amount
+        food_available = ant.cell.items[ItemType.FOOD]
+        if food_available > 0:
+            taken = food_available * self.food_pickup_fraction
+            ant.cell.remove_item(ItemType.FOOD, taken) 
+
             ant.carrying = True
+            ant.carried_food_amount = taken
             ant.last_action_ok = True
             ant.route_len = 0
+
+            food_left = ant.cell.items[ItemType.FOOD]
+            if food_left < self.food_depletion_threshold:
+                ant.cell.remove_item(ItemType.FOOD, food_left)
         else:
             ant.last_action_ok = False
 
     def _drop(self, ant: Ant) -> None:
         if ant.carrying:
             ant.score += 1
-            self.score+= 1
-            self.food_delivered_this_tick += 1
+
+            self.score += 1
+            self.score_this_tick += 1
+
+            ant.food_delivered += ant.carried_food_amount
+            self.food_delivered += ant.carried_food_amount
+            self.food_delivered_this_tick += ant.carried_food_amount
+
+            ant.carried_food_amount = 0.0
+            
             ant.carrying = False
             ant.route_len = 0
             ant.last_action_ok = True

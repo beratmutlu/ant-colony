@@ -2,6 +2,8 @@
 
 This project simulates an ant colony collecting food in a grid world. It is mainly used to run different experiment configurations and compare their results.
 
+**Live demo:** https://beratmutlu.github.io/ant-colony/
+
 ## Setup
 
 Use Python 3.

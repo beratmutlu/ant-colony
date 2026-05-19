@@ -1,5 +1,7 @@
 import json
 import statistics
+import numpy as np
+
 from dataclasses import dataclass, field
 from pathlib import Path
 from multiprocessing import Pool
@@ -8,6 +10,8 @@ from colony.core.simulation import Simulation
 from analysis.experiment import ExperimentConfig, ExperimentResult
 from analysis.convergence import OnlineConvergenceTracker, PostHocConvergenceDetector
 from analysis.logger import Logger
+from analysis.pheromone_visualizer import PheromoneVisualizer
+
 
 @dataclass
 class RunConfig:
@@ -21,6 +25,10 @@ class RunConfig:
     post_hoc_min_relative_regime_step: float = 0.08
 
     log_dir: Path | None = Path("logs")
+    pheromone_snapshot_dir: Path | None = None
+    pheromone_snapshot_delay_ticks_by_event: dict[str, int] = field(default_factory=lambda: {
+        "clear_pheromones": 200, "set_ant_capacity": 1000
+    })
 
 
 def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
@@ -41,6 +49,16 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
         path=run_cfg.log_dir / f"{exp_cfg.label}.jsonl" if run_cfg.log_dir else None
     )
 
+    pheromone_visualizer = None
+    pheromone_snapshot_dir = None
+    pending_comparisons: dict[int, list[tuple[int, str, int, dict, dict]]] = {}
+
+
+    if run_cfg.pheromone_snapshot_dir:
+        pheromone_visualizer = PheromoneVisualizer()
+        pheromone_snapshot_dir = run_cfg.pheromone_snapshot_dir / exp_cfg.label
+
+
     score_history: list[int] = []
     epoch_history: list[int] = []
     ants_alive_history: list[int] = []
@@ -54,8 +72,29 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
     epoch_food = 0
 
     for _ in range(run_cfg.max_ticks):
+
+        next_tick = sim.manager.tick + 1
+
+        if pheromone_visualizer and next_tick in sim.events_by_tick:
+            before = pheromone_visualizer.snapshot(sim)
+            
+            for event in sim.events_by_tick[next_tick]:
+                event_type = event["type"]
+                delay = run_cfg.pheromone_snapshot_delay_ticks_by_event.get(event_type, 500)
+                comparison_tick = next_tick + delay
+                pending_comparisons.setdefault(comparison_tick, []).append((next_tick, event_type, delay, event, before))
+        
         sim.step()
         tick = sim.manager.tick
+
+        if pheromone_visualizer and tick in pending_comparisons:
+            after = pheromone_visualizer.snapshot(sim)
+
+            for event_tick, event_type, delay, event, before in pending_comparisons[tick]:
+                path = pheromone_snapshot_dir / f"tick_{event_tick}_{event_type}_compare_after_{delay}.png"
+                title = f"{exp_cfg.label} - {event_type} at tick {event_tick}, after {delay} ticks"
+                pheromone_visualizer.save_comparison(before, after, event, path, title)
+
         delivered = sim.manager.score_this_tick
         score_history.append(delivered)
         epoch_food += delivered
@@ -102,6 +141,12 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
         if not sim.manager.ants:
             logger.log(tick, "extinction", epoch=epoch)
             break
+    
+    if pheromone_visualizer:
+        tick = sim.manager.tick
+        path = pheromone_snapshot_dir / f"final_tick_{tick}.png"
+        title = f"{exp_cfg.label} - final pheromone field at tick {tick}"
+        pheromone_visualizer.save_heatmap(sim, path, title)
 
     logger.close()
 

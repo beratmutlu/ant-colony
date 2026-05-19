@@ -65,6 +65,7 @@ def main() -> None:
         convergence_window=args.convergence_window,
         convergence_epsilon=args.convergence_epsilon,
         log_dir=output_dir / "logs",
+        pheromone_snapshot_dir=output_dir / "pheromones",
         post_hoc_penalty_scale=args.post_hoc_penalty_scale,
         post_hoc_max_relative_total_drift=args.post_hoc_max_relative_total_drift,
         post_hoc_min_relative_regime_step=args.post_hoc_min_relative_regime_step

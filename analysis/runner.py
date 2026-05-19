@@ -6,7 +6,7 @@ from multiprocessing import Pool
 
 from colony.core.simulation import Simulation
 from analysis.experiment import ExperimentConfig, ExperimentResult
-from analysis.convergence import OnlineConvergenceTracker
+from analysis.convergence import OnlineConvergenceTracker, PostHocConvergenceDetector
 from analysis.logger import Logger
 
 @dataclass
@@ -15,6 +15,11 @@ class RunConfig:
     convergence_window: int = 10
     epoch_size: int = 50
     convergence_epsilon: float = 0.15
+
+    post_hoc_penalty_scale: float = 1.0
+    post_hoc_max_relative_total_drift: float = 0.08
+    post_hoc_min_relative_regime_step: float = 0.08
+
     log_dir: Path | None = Path("logs")
 
 
@@ -99,6 +104,15 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
             break
 
     logger.close()
+
+    post_hoc = PostHocConvergenceDetector(
+        min_size=run_cfg.convergence_window,
+        min_plateau_epochs=run_cfg.convergence_window,
+        penalty_scale=run_cfg.post_hoc_penalty_scale,
+        max_relative_total_drift=run_cfg.post_hoc_max_relative_total_drift,
+        min_relative_regime_step=run_cfg.post_hoc_min_relative_regime_step
+    ).detect(epoch_history)
+
     plateau_ranges = list(tracker.plateau_ranges)
     if tracker.active_plateau_start is not None:
         plateau_ranges.append((tracker.active_plateau_start, epoch))
@@ -118,7 +132,8 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
         carrying_ratio_history=carrying_ratio_history,
         ticks_run=sim.manager.tick,
         epochs_run=epoch,
-        epoch_size=run_cfg.epoch_size
+        epoch_size=run_cfg.epoch_size,
+        post_hoc_convergence=post_hoc
     )
 
 

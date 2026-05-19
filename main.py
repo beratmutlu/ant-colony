@@ -8,6 +8,7 @@ Usage:
 import argparse
 import asyncio
 from pathlib import Path
+from datetime import datetime
 
 from analysis.runner import BatchRunner, RunConfig, load_experiment_configs
 from analysis.plotter import ExperimentPlotter
@@ -24,12 +25,18 @@ def main() -> None:
     parser.add_argument("--sequential", action="store_true", help="Run sequentially (debug)")
     parser.add_argument("--visualize", action="store_true", help="Launch baseline sim in pygame")
     parser.add_argument("--config-dir", type=str, default="configs/experiments", help="Select the set of experiment configurations to simulate")
+    parser.add_argument("--run-id", type=str, default=None, help="Optional output run id")
+    parser.add_argument("--post-hoc-penalty-scale", type=float, default=1.0, help="PELT penalty scale for post-hoc regime detection")
+    parser.add_argument("--post-hoc-max-relative-total-drift", type=float, default=0.08, help="Max relative total drift for post-hoc plateau labeling")
+    parser.add_argument("--post-hoc-min-relative-regime-step", type=float, default=0.08, help="Min relative mean step for rejecting stair-step regimes")
+
     args = parser.parse_args()
 
     seed = args.seed
 
     config_dir = Path(args.config_dir)
-    output_dir = Path(f"results/seed_{seed}")
+    run_id = args.run_id or datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    output_dir = Path("results") / config_dir.name / f"seed{seed}" / run_id
 
     print(f"═══ Ant Colony Experiment Runner ═══")
     print(f"  Seed:       {seed}")
@@ -37,6 +44,9 @@ def main() -> None:
     print(f"  Epoch size: {args.epoch}")
     print(f"  Convergence window: {args.convergence_window}")
     print(f"  Convergence epsilon: {args.convergence_epsilon}")
+    print(f"  Post-hoc penalty scale: {args.post_hoc_penalty_scale}")
+    print(f"  Post-hoc max drift:     {args.post_hoc_max_relative_total_drift}")
+    print(f"  Post-hoc stair step:    {args.post_hoc_min_relative_regime_step}")
     print(f"  Configs:    {config_dir}")
     print(f"  Output:     {output_dir}")
     print()
@@ -55,6 +65,9 @@ def main() -> None:
         convergence_window=args.convergence_window,
         convergence_epsilon=args.convergence_epsilon,
         log_dir=output_dir / "logs",
+        post_hoc_penalty_scale=args.post_hoc_penalty_scale,
+        post_hoc_max_relative_total_drift=args.post_hoc_max_relative_total_drift,
+        post_hoc_min_relative_regime_step=args.post_hoc_min_relative_regime_step
     )
 
     runner = BatchRunner(run_config=run_cfg, experiments=experiments)

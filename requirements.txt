@@ -1,2 +1,4 @@
 pygame
 matplotlib
+numpy
+ruptures

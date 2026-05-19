@@ -1,5 +1,6 @@
 import copy
 from dataclasses import dataclass, field
+from analysis.convergence import PostHocConvergenceResult
 
 @dataclass
 class ExperimentConfig:
@@ -35,3 +36,5 @@ class ExperimentResult:
     ticks_run: int = 0
     epochs_run: int = 0
     epoch_size: int = 1
+    post_hoc_convergence: PostHocConvergenceResult = field(default_factory=PostHocConvergenceResult)
+

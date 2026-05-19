@@ -41,11 +41,15 @@ class Simulation:
         self._apply_initial_pheromones(grid, initial_pheromones)
 
         food_properties = cfg.get("food", {})
+        infinite_food = food_properties.get("infinite", True)
         food_pickup_fraction = food_properties.get("pickup_fraction", 0.01)
         food_depletion_threshold = food_properties.get("depletion_threshold", 0.001)
 
-        if not 0 < food_pickup_fraction <= 1:
-            raise ValueError(f"food.pickup_fraction must be > 0 and <= 1, got {food_pickup_fraction}")
+        if infinite_food:
+            food_pickup_fraction = 0.0
+        
+        if not 0 <= food_pickup_fraction <= 1:
+            raise ValueError(f"food.pickup_fraction must be >= 0 and <= 1, got {food_pickup_fraction}")
         
         if food_depletion_threshold < 0:
             raise ValueError(f"food.depletion_threshold must be >= 0, got {food_depletion_threshold}")

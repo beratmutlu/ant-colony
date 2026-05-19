@@ -14,6 +14,7 @@
     "nest_pos": [10, 10],
     "ph_strength": 50.0,
     "food": {
+        "infinite": true,
         "pickup_fraction": 0.01,
         "depletion_threshold": 0.001
     },

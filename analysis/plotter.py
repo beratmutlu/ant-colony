@@ -210,15 +210,60 @@ class ExperimentPlotter:
         )
 
     def _plot_plateau_ranges(self) -> None:
-        fig, ax = plt.subplots(figsize=(16, 4))
-        self._style(ax)
+        fig, axes = plt.subplots(3, 1, figsize=(16, 10), sharex=True)
+        self._style(axes)
+        
+        online_ax, pelt_ax, post_hoc_ax = axes
 
         labels = [r.label for r in self.results]
         y_positions = range(len(self.results))
 
+
+        max_epoch = max((r.epochs_run for r in self.results), default=1)
+
+        self._draw_ranges_panel(
+            online_ax,
+            lambda r: r.plateau_ranges,
+            "Online Stable Plateau Ranges",
+            labels,
+            y_positions,
+            max_epoch
+        )
+
+        self._draw_ranges_panel(
+            pelt_ax,
+            lambda r: [(s.start_epoch, s.end_epoch) for s in r.post_hoc_convergence.segments],
+            "Raw PELT Regime Segments",
+            labels,
+            y_positions,
+            max_epoch,
+            label_by_range=self._pelt_segment_label
+        )
+
+        self._draw_ranges_panel(
+            post_hoc_ax,
+            lambda r: r.post_hoc_convergence.plateau_ranges,
+            "Post-Hoc Interpreted Plateaus",
+            labels,
+            y_positions,
+            max_epoch
+        )
+
+        post_hoc_ax.set_xlabel("Epoch")
+
+        plt.tight_layout()
+        fig.savefig(
+            self.output_dir / "plateau_ranges.png",
+            dpi=150, bbox_inches="tight",
+        )
+
+    def _draw_ranges_panel(self, ax, ranges_by_result, title: str, labels, y_positions, max_epoch: int, label_by_range=None) -> None:
         for y, r in zip(y_positions, self.results):
             color = self._colors[r.label]
-            for start, end in r.plateau_ranges:
+            for start, end in ranges_by_result(r):
+                label = f"{start}-{end}"
+                if label_by_range:
+                    label = label_by_range(r, start, end)
                 width = max(end - start, 1)
                 ax.broken_barh(
                     [(start, width)],
@@ -226,32 +271,33 @@ class ExperimentPlotter:
                     facecolors=color,
                     edgecolors="black",
                     alpha=0.65,
-                    linewidth=0.7,
+                    linewidth=0.7
                 )
-                ax.text(
-                    start + width / 2,
-                    y,
-                    f"{start}-{end}",
-                    ha="center",
-                    va="center",
-                    fontsize=8,
-                    color="white",
-                )
+                if width >= 40:
+                    ax.text(
+                        start + width / 2,
+                        y,
+                        label,
+                        ha="center",
+                        va="center",
+                        fontsize=8,
+                        color="white"
+                    )
 
-        max_epoch = max((r.epochs_run for r in self.results), default=1)
         self._draw_event_markers(ax)
         ax.set_xlim(0, max_epoch)
         ax.set_yticks(list(y_positions))
         ax.set_yticklabels(labels, fontsize=8)
-        ax.set_xlabel("Epoch")
-        ax.set_title("Detected Stable Plateau Ranges", fontsize=12, fontweight="bold")
+        ax.set_title(title, fontsize=12, fontweight="bold")
         self._add_event_legend(ax, loc="upper right")
 
-        plt.tight_layout()
-        fig.savefig(
-            self.output_dir / "plateau_ranges.png",
-            dpi=150, bbox_inches="tight",
-        )
+    def _pelt_segment_label(self, result: ExperimentResult, start: int, end: int) -> str:
+        for segment in result.post_hoc_convergence.segments:
+            if segment.start_epoch == start and segment.end_epoch == end:
+                return (
+                    f"{start}-{end}\nm={segment.mean:.0f} d={segment.relative_total_drift:.0%}"
+                )
+        return f"{start}-{end}"
 
     # text report
     def _write_text_report(self) -> None:
@@ -283,13 +329,56 @@ class ExperimentPlotter:
             )
 
         lines.append("")
-        lines.append("--- Detected Plateau Ranges ---")
+        lines.append("--- Online Plateau Ranges ---")
         for r in self.results:
             if r.plateau_ranges:
                 ranges = ", ".join(f"{start}-{end}" for start, end in r.plateau_ranges)
             else:
                 ranges = "N/A"
             lines.append(f"{r.label:<25} {ranges}")
+
+        lines.append("")
+        lines.append("--- Post-Hoc Plateau Ranges ---")
+        for r in self.results:
+            post_hoc = r.post_hoc_convergence
+            conv = post_hoc.convergence_epoch if post_hoc.convergence_epoch else "N/A"
+
+            if post_hoc.plateau_ranges:
+                ranges = ", ".join(f"{start}-{end}" for start, end in post_hoc.plateau_ranges)
+            else:
+                ranges = "N/A"
+
+            lines.append(f"{r.label:<25} conv@={str(conv):>5}  {ranges}")
+
+        lines.append("")
+        lines.append("--- Raw PELT Regime Segments ---")
+        for r in self.results:
+            post_hoc = r.post_hoc_convergence
+            lines.append(f"\n  [{r.label}]")
+            if not post_hoc.segments:
+                lines.append("    N/A")
+                continue
+
+            hdr = (
+                f"    {'Epochs':<11} {'Len':>5} {'Mean':>8} {'Std':>8} "
+                f"{'Slope':>9} {'Drift':>8} {'Plateau':>8}"
+            )
+            lines.append(hdr)
+            lines.append("    " + "-" * (len(hdr) - 4))
+
+            plateau_set = set(post_hoc.plateau_ranges)
+            for segment in post_hoc.segments:
+                epoch_range = f"{segment.start_epoch}-{segment.end_epoch}"
+                plateau = "yes" if (segment.start_epoch, segment.end_epoch) in plateau_set else "no"
+                lines.append(
+                    f"    {epoch_range:<11} "
+                    f"{segment.length:>5} "
+                    f"{segment.mean:>8.2f} "
+                    f"{segment.std:>8.2f} "
+                    f"{segment.slope:>9.3f} "
+                    f"{segment.relative_total_drift:>7.1%} "
+                    f"{plateau:>8}"
+                )
 
         lines.append("")
         lines.append("--- Epoch Food Statistics ---")

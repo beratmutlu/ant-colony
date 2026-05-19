@@ -70,28 +70,6 @@ python3 -m pygbag web
 
 For the most reliable browser experience, use Chrome or Firefox.
 
-## Output
-
-Results are written to:
-
-```text
-results/<config-folder>/seed<seed>/<run-id>/
-```
-
-Example:
-
-```text
-results/experiments/seed42/2026-05-19_20-13-58/
-```
-
-Each run directory contains:
-
-- `logs/*.jsonl`: log files for each experiment configuration
-- `performance_dashboard.png`: performance overview plot
-- `convergence_summary.png`: final score and convergence overview
-- `plateau_ranges.png`: plateau overview
-- `report.txt`: text summary of the run
-
 ## Config File Structure
 
 Experiment files are JSON files. The comments below are only explanations; remove them in real `.json` files.
@@ -159,6 +137,47 @@ Experiment files are JSON files. The comments below are only explanations; remov
 ```
 
 The optional blocks `events`, `ant_capacity_overrides`, and `initial_pheromones` can be left out when they are not needed.
+
+## Output
+
+Results are written to:
+
+```text
+results/<config-folder>/seed<seed>/<run-id>/
+```
+
+Example:
+
+```text
+results/experiments/seed42/2026-05-19_20-13-58/
+```
+
+Each run directory contains:
+
+- `logs/*.jsonl`: log files for each experiment configuration
+- `pheromones/<config-label>/*.png`: pheromone heatmaps and event recovery comparisons
+- `performance_dashboard.png`: performance overview plot
+- `convergence_summary.png`: final score and convergence overview
+- `plateau_ranges.png`: plateau overview
+- `report.txt`: text summary of the run
+
+Pheromone snapshots are saved for each configuration. Runs without events get a final
+heatmap. Runs with scheduled events also get before/after comparison images. These
+comparison images use one shared color scale per row, so trail strength before and
+after the event can be compared directly.
+
+Example:
+
+```text
+results/experiments_with_events/seed42/2026-05-20_12-00-00/pheromones/event_route_block_e50/
+  tick_3500_set_ant_capacity_compare_after_1000.png
+  final_tick_10000.png
+```
+
+In event comparison images, orange outlined cells mark the affected event area in the
+before view. Blocked cells are marked with cyan `X` symbols after a `set_ant_capacity`
+event. Final heatmaps show food pheromone, nest pheromone, and the combined pheromone
+field.
 
 ## Command Line Options
 

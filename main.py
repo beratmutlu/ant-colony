@@ -98,11 +98,14 @@ def main() -> None:
             results = runner.run_sync()
 
     # quick console summary
-    print(f"\n{'Label':<25} {'Score':>8}  {'Conv@':>6}  {'Ticks':>8}")
-    print("-" * 55)
+    print(f"\n{'Label':<25} {'Deliveries':>10} {'Food':>10} {'Conv@':>6} {'Ticks':>8}")
+    print("-" * 68)
     for r in results:
         conv = str(r.convergence_epoch) if r.convergence_epoch else "—"
-        print(f"{r.label:<25} {r.final_score:>8}  {conv:>6}  {r.ticks_run:>8}")
+        print(
+            f"{r.label:<25} {r.final_score:>10} "
+            f"{r.final_food_amount:>10.4f} {conv:>6} {r.ticks_run:>8}"
+        )
     print()
 
     # plot

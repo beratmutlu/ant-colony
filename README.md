@@ -95,7 +95,7 @@ Experiment files are JSON files. The comments below are only explanations; remov
   "ph_strength": 50.0,                        // Pheromone strength used by the run.
 
   "food": {                                   // Food behavior settings.
-    "infinite": true,                         // If true, food sources do not run out.
+    "infinite": false,                        // Default true. If false, food sources lose amount on pickup.
     "pickup_fraction": 0.01,                  // Removed per pickup when food is finite.
     "depletion_threshold": 0.001              // Food below this amount counts as depleted.
   },
@@ -136,7 +136,7 @@ Experiment files are JSON files. The comments below are only explanations; remov
 }
 ```
 
-The optional blocks `events`, `ant_capacity_overrides`, and `initial_pheromones` can be left out when they are not needed.
+The optional blocks `food`, `events`, `ant_capacity_overrides`, and `initial_pheromones` can be left out when they are not needed.
 
 ## Output
 
@@ -157,7 +157,7 @@ Each run directory contains:
 - `logs/*.jsonl`: log files for each experiment configuration
 - `pheromones/<config-label>/*.png`: pheromone heatmaps and event recovery comparisons
 - `performance_dashboard.png`: performance overview plot
-- `convergence_summary.png`: final score and convergence overview
+- `delivery_food_dashboard.png`: delivery counts, food amounts, and efficiency plots
 - `plateau_ranges.png`: plateau overview
 - `report.txt`: text summary of the run
 

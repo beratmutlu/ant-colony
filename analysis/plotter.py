@@ -50,7 +50,7 @@ class ExperimentPlotter:
     def plot_all(self, show: bool = True) -> None:
         """Generate all comparison plots, save PNGs and a text report."""
         self._plot_performance_dashboard()
-        self._plot_convergence_summary()
+        self._plot_delivery_food_dashboard()
         self._plot_plateau_ranges()
         self._write_text_report()
         if show:
@@ -66,7 +66,7 @@ class ExperimentPlotter:
         self._style(axes)
 
         self._panel_cumulative_deviation(axes[0, 0])
-        self._panel_food_per_epoch(axes[0, 1])
+        self._panel_deliveries_per_epoch(axes[0, 1])
         self._panel_colony_size(axes[1, 0])
         self._panel_avg_energy(axes[1, 1])
 
@@ -76,12 +76,101 @@ class ExperimentPlotter:
             dpi=150, bbox_inches="tight",
         )
 
-    def _panel_cumulative_deviation(self, ax) -> None:
+    def _plot_delivery_food_dashboard(self) -> None:
+        fig, axes = plt.subplots(2, 2, figsize=(16, 10))
+        fig.suptitle(
+            "Deliveries & Food Amount — Config Comparison",
+            fontsize=14, fontweight="bold", y=0.98,
+        )
+        self._style(axes)
+
+        self._panel_epoch_series(
+            axes[0, 0],
+            "Deliveries per Epoch",
+            "Deliveries",
+            lambda r: r.epoch_delivery_history,
+        )
+        self._panel_epoch_series(
+            axes[0, 1],
+            "Food Amount per Epoch",
+            "Food Amount",
+            lambda r: r.epoch_food_amount_history,
+        )
+        self._panel_epoch_efficiency_series(
+            axes[1, 0],
+            "Delivery Efficiency per Epoch",
+            "Deliveries per Tick",
+            lambda r: r.epoch_delivery_history,
+        )
+        self._panel_epoch_efficiency_series(
+            axes[1, 1],
+            "Food Amount Efficiency per Epoch",
+            "Food Amount per Tick",
+            lambda r: r.epoch_food_amount_history,
+        )
+
+        plt.tight_layout(rect=[0, 0, 1, 0.95])
+        fig.savefig(
+            self.output_dir / "delivery_food_dashboard.png",
+            dpi=150, bbox_inches="tight",
+        )
+
+    def _panel_epoch_series(self, ax, title: str, ylabel: str, history_getter) -> None:
         for r in self.results:
-            if not r.epoch_history:
+            values = history_getter(r)
+            epochs = range(1, len(values) + 1)
+
+            ax.plot(epochs, values, color=self._colors[r.label], alpha=0.3, linewidth=0.8)
+
+            if len(values) >= 5:
+                kernel = np.ones(5) / 5
+                smooth = np.convolve(values, kernel, mode="valid")
+                ax.plot(range(3, 3 + len(smooth)), smooth, color=self._colors[r.label], label=r.label, linewidth=1.8)
+            else:
+                ax.plot(epochs, values, color=self._colors[r.label], label=r.label, linewidth=1.8)
+
+        self._draw_event_markers(ax)
+        ax.set_title(title, fontsize=11, fontweight="bold")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel(ylabel)
+        ax.set_ylim(bottom=0)
+        self._add_event_legend(ax)
+    
+    def _panel_epoch_efficiency_series(self, ax, title: str, ylabel: str, history_getter) -> None:
+        for r in self.results:
+            values = np.asarray(history_getter(r), dtype=float)
+            if len(values) == 0:
                 continue
 
-            cum = np.cumsum(r.epoch_history)
+            epochs = np.arange(1, len(values) + 1)
+            efficiency = values / max(r.epoch_size, 1)
+
+            ax.plot(epochs, efficiency, color=self._colors[r.label],
+                    alpha=0.3, linewidth=0.8)
+
+            if len(efficiency) >= 5:
+                kernel = np.ones(5) / 5
+                smooth = np.convolve(efficiency, kernel, mode="valid")
+                ax.plot(range(3, 3 + len(smooth)), smooth,
+                        color=self._colors[r.label], label=r.label,
+                        linewidth=1.8)
+            else:
+                ax.plot(epochs, efficiency, color=self._colors[r.label],
+                        label=r.label, linewidth=1.8)
+
+        self._draw_event_markers(ax)
+        ax.set_title(title, fontsize=11, fontweight="bold")
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel(ylabel)
+        ax.set_ylim(bottom=0)
+        self._add_event_legend(ax)
+
+    def _panel_cumulative_deviation(self, ax) -> None:
+        for r in self.results:
+            if not r.epoch_delivery_history:
+                continue
+
+            cum = np.cumsum(r.epoch_delivery_history)
             epochs = np.arange(1, len(cum) + 1)
             expected = epochs * (cum[-1] / len(cum))
             deviation = cum - expected
@@ -95,28 +184,28 @@ class ExperimentPlotter:
         self._draw_event_markers(ax)
         ax.set_title("Deviation From Average Cumulative Trend", fontsize=11, fontweight="bold")
         ax.set_xlabel("Epoch")
-        ax.set_ylabel("Food Ahead/Behind Own Average Pace")
+        ax.set_ylabel("Deliveries Ahead/Behind Own Average Pace")
         self._add_event_legend(ax, loc="upper left")
 
-    def _panel_food_per_epoch(self, ax) -> None:
+    def _panel_deliveries_per_epoch(self, ax) -> None:
         for r in self.results:
-            epochs = range(1, len(r.epoch_history) + 1)
-            ax.plot(epochs, r.epoch_history, color=self._colors[r.label],
+            epochs = range(1, len(r.epoch_delivery_history) + 1)
+            ax.plot(epochs, r.epoch_delivery_history, color=self._colors[r.label],
                     alpha=0.3, linewidth=0.8)
             # rolling mean (window=5)
-            if len(r.epoch_history) >= 5:
+            if len(r.epoch_delivery_history) >= 5:
                 kernel = np.ones(5) / 5
-                smooth = np.convolve(r.epoch_history, kernel, mode="valid")
+                smooth = np.convolve(r.epoch_delivery_history, kernel, mode="valid")
                 ax.plot(range(3, 3 + len(smooth)), smooth,
                         color=self._colors[r.label], label=r.label,
                         linewidth=1.8)
             else:
-                ax.plot(epochs, r.epoch_history, color=self._colors[r.label],
+                ax.plot(epochs, r.epoch_delivery_history, color=self._colors[r.label],
                         label=r.label, linewidth=1.8)
         self._draw_event_markers(ax)
-        ax.set_title("Food per Epoch (smoothed)", fontsize=11, fontweight="bold")
+        ax.set_title("Deliveries per Epoch (smoothed)", fontsize=11, fontweight="bold")
         ax.set_xlabel("Epoch")
-        ax.set_ylabel("Food Delivered")
+        ax.set_ylabel("Deliveries")
         self._add_event_legend(ax)
 
     def _panel_colony_size(self, ax) -> None:
@@ -142,72 +231,6 @@ class ExperimentPlotter:
         ax.set_xlabel("Epoch")
         ax.set_ylabel("Energy")
         self._add_event_legend(ax)
-
-    # convergence / summary bars (1×3)
-    def _plot_convergence_summary(self) -> None:
-        fig, axes = plt.subplots(1, 3, figsize=(18, 5))
-        fig.suptitle(
-            "Convergence & Final Results",
-            fontsize=14, fontweight="bold", y=1.02,
-        )
-        self._style(axes)
-
-        labels = [r.label for r in self.results]
-        colors = [self._colors[l] for l in labels]
-        x = range(len(labels))
-
-        # bar 1: convergence epoch
-        ax = axes[0]
-        conv = [
-            r.convergence_epoch if r.convergence_epoch else r.epochs_run
-            for r in self.results
-        ]
-        did_converge = [r.convergence_epoch is not None for r in self.results]
-        bars = ax.bar(x, conv, color=colors, edgecolor="black", linewidth=0.8)
-        for bar, ok, val in zip(bars, did_converge, conv):
-            if not ok:
-                bar.set_hatch("//")
-            sym = "✓" if ok else "✗"
-            ax.text(bar.get_x() + bar.get_width() / 2,
-                    bar.get_height() + 0.5,
-                    f"{sym} {val}", ha="center", va="bottom", fontsize=9)
-        ax.set_xticks(list(x))
-        ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=8)
-        ax.set_title("Convergence Epoch", fontsize=11, fontweight="bold")
-        ax.set_ylabel("Epoch")
-
-        # bar 2: final score
-        ax = axes[1]
-        scores = [r.final_score for r in self.results]
-        bars = ax.bar(x, scores, color=colors, edgecolor="black", linewidth=0.8)
-        for bar, val in zip(bars, scores):
-            ax.text(bar.get_x() + bar.get_width() / 2,
-                    bar.get_height() + 0.5,
-                    str(val), ha="center", va="bottom",
-                    fontsize=9, fontweight="bold")
-        ax.set_xticks(list(x))
-        ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=8)
-        ax.set_title("Final Score", fontsize=11, fontweight="bold")
-        ax.set_ylabel("Total Food Delivered")
-
-        # bar 3: efficiency
-        ax = axes[2]
-        eff = [r.final_score / max(r.ticks_run, 1) for r in self.results]
-        bars = ax.bar(x, eff, color=colors, edgecolor="black", linewidth=0.8)
-        for bar, val in zip(bars, eff):
-            ax.text(bar.get_x() + bar.get_width() / 2,
-                    bar.get_height() + 0.001,
-                    f"{val:.3f}", ha="center", va="bottom", fontsize=9)
-        ax.set_xticks(list(x))
-        ax.set_xticklabels(labels, rotation=25, ha="right", fontsize=8)
-        ax.set_title("Efficiency (Score / Tick)", fontsize=11, fontweight="bold")
-        ax.set_ylabel("Food per Tick")
-
-        plt.tight_layout()
-        fig.savefig(
-            self.output_dir / "convergence_summary.png",
-            dpi=150, bbox_inches="tight",
-        )
 
     def _plot_plateau_ranges(self) -> None:
         fig, axes = plt.subplots(3, 1, figsize=(16, 10), sharex=True)
@@ -381,21 +404,36 @@ class ExperimentPlotter:
                 )
 
         lines.append("")
-        lines.append("--- Epoch Food Statistics ---")
+        lines.append("--- Epoch Delivery Statistics ---")
         hdr2 = f"{'Config':<25} {'Mean':>8} {'Std':>8} {'Min':>8} {'Max':>8}"
         lines.append(hdr2)
         lines.append("-" * len(hdr2))
 
         for r in self.results:
-            if r.epoch_history:
-                m = f"{statistics.mean(r.epoch_history):.1f}"
-                s = (f"{statistics.stdev(r.epoch_history):.1f}"
-                     if len(r.epoch_history) > 1 else "0.0")
+            values = r.epoch_delivery_history
+            if values:
+                m = f"{statistics.mean(values):.1f}"
+                s = (f"{statistics.stdev(values):.1f}" if len(values) > 1 else "0.0")
                 lines.append(
                     f"{r.label:<25} {m:>8} {s:>8} "
-                    f"{min(r.epoch_history):>8} {max(r.epoch_history):>8}"
+                    f"{min(values):>8} {max(values):>8}"
                 )
 
+        lines.append("")
+        lines.append("--- Epoch Food Amount Statistics ---")
+        lines.append(hdr2)
+        lines.append("-" * len(hdr2))
+
+        for r in self.results:
+            values = r.epoch_food_amount_history
+            if values:
+                m = f"{statistics.mean(values):.4f}"
+                s = f"{statistics.stdev(values):.4f}" if len(values) > 1 else "0.0000"
+                lines.append(
+                    f"{r.label:<25} {m:>8} {s:>8} "
+                    f"{min(values):>8.4f} {max(values):>8.4f}"
+                )
+        
         lines.append("")
         lines.append("--- Configuration Parameters ---")
         for r in self.results:
@@ -431,17 +469,17 @@ class ExperimentPlotter:
         for start, end in result.plateau_ranges:
             ax.axvspan(start, end, color=color, alpha=0.06, linewidth=0)
 
-    def _draw_event_markers(self, ax) -> None:
+    def _draw_event_markers(self, ax, *, scale: str = "epoch") -> None:
         for result in self.results:
             for event in result.config.get("events", []):
                 tick = event.get("tick")
                 if tick is None:
                     continue
-
-                epoch = self._event_epoch(result, tick)
+                
+                x = tick if scale == "tick" else self._event_epoch(result, tick)
 
                 ax.axvline(
-                    epoch,
+                    x,
                     color=self._colors[result.label],
                     linestyle=self._event_line_style(event),
                     linewidth=1.4,

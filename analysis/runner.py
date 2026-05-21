@@ -59,8 +59,12 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
         pheromone_snapshot_dir = run_cfg.pheromone_snapshot_dir / exp_cfg.label
 
 
-    score_history: list[int] = []
-    epoch_history: list[int] = []
+    delivery_history: list[int] = []
+    epoch_delivery_history: list[int] = []
+
+    food_amount_history: list[float] = []
+    epoch_food_amount_history: list[float] = []
+
     ants_alive_history: list[int] = []
     avg_energy_history: list[float] = []
     carrying_ratio_history: list[float] = []
@@ -69,7 +73,8 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
     convergence_tick: int | None = None
 
     epoch = 0
-    epoch_food = 0
+    epoch_deliveries = 0
+    epoch_food_amount = 0.0
 
     for _ in range(run_cfg.max_ticks):
 
@@ -95,17 +100,22 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
                 title = f"{exp_cfg.label} - {event_type} at tick {event_tick}, after {delay} ticks"
                 pheromone_visualizer.save_comparison(before, after, event, path, title)
 
-        delivered = sim.manager.score_this_tick
-        score_history.append(delivered)
-        epoch_food += delivered
+        deliveries = sim.manager.score_this_tick
+        food_amount = sim.manager.food_delivered_this_tick
 
+        delivery_history.append(deliveries)
+        food_amount_history.append(food_amount)
+
+        epoch_deliveries += deliveries
+        epoch_food_amount += food_amount
 
         if tick % run_cfg.epoch_size == 0 and tick > 0:
             epoch += 1
-            epoch_history.append(epoch_food)
+            epoch_delivery_history.append(epoch_deliveries)
+            epoch_food_amount_history.append(epoch_food_amount)
 
             previous_plateau_start = tracker.active_plateau_start
-            tracker.update(epoch, epoch_food)
+            tracker.update(epoch, epoch_deliveries)
             if previous_plateau_start is None and tracker.active_plateau_start is not None:
                 logger.log(tick, "plateau_start", epoch=tracker.active_plateau_start)
             elif previous_plateau_start is not None and tracker.active_plateau_start is None:
@@ -124,14 +134,17 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
             logger.log(tick, "summary",
                 epoch=epoch,
                 score=sim.manager.score,
+                food_delivered=round(sim.manager.food_delivered, 4),
                 ants_alive=n_alive,
-                epoch_food=epoch_food,
+                epoch_deliveries=epoch_deliveries,
+                epoch_food_amount=round(epoch_food_amount, 4),
                 avg_energy=round(avg_e, 2),
                 carrying_count=n_carrying,
                 carrying_ratio=round(carry_ratio, 4),
                 stable=tracker.stable
             )
-            epoch_food = 0
+            epoch_deliveries = 0
+            epoch_food_amount = 0.0
 
         if tracker.converged and not logged_convergence:
             convergence_tick = tick
@@ -156,7 +169,7 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
         penalty_scale=run_cfg.post_hoc_penalty_scale,
         max_relative_total_drift=run_cfg.post_hoc_max_relative_total_drift,
         min_relative_regime_step=run_cfg.post_hoc_min_relative_regime_step
-    ).detect(epoch_history)
+    ).detect(epoch_delivery_history)
 
     plateau_ranges = list(tracker.plateau_ranges)
     if tracker.active_plateau_start is not None:
@@ -170,8 +183,11 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
         plateau_ranges=plateau_ranges,
         active_plateau_start=tracker.active_plateau_start,
         final_score=sim.manager.score,
-        score_history=score_history,
-        epoch_history=epoch_history,
+        final_food_amount=round(sim.manager.food_delivered, 4),
+        delivery_history=delivery_history,
+        epoch_delivery_history=epoch_delivery_history,
+        food_amount_history=food_amount_history,
+        epoch_food_amount_history=epoch_food_amount_history,
         ants_alive_history=ants_alive_history,
         avg_energy_history=avg_energy_history,
         carrying_ratio_history=carrying_ratio_history,

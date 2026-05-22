@@ -25,7 +25,7 @@ class RunConfig:
     post_hoc_min_relative_regime_step: float = 0.08
 
     log_dir: Path | None = Path("logs")
-    pheromone_snapshot_dir: Path | None = None
+    snapshot_dir: Path | None = None
     pheromone_snapshot_delay_ticks_by_event: dict[str, int] = field(default_factory=lambda: {
         "clear_pheromones": 200, "set_ant_capacity": 1000
     })
@@ -50,13 +50,16 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
     )
 
     pheromone_visualizer = None
-    pheromone_snapshot_dir = None
+    final_snapshot_dir = None
+    event_snapshot_dir = None
+    depletion_snapshot_dir = None
     pending_comparisons: dict[int, list[tuple[int, str, int, dict, dict]]] = {}
 
-
-    if run_cfg.pheromone_snapshot_dir:
+    if run_cfg.snapshot_dir:
         pheromone_visualizer = PheromoneVisualizer()
-        pheromone_snapshot_dir = run_cfg.pheromone_snapshot_dir / exp_cfg.label
+        final_snapshot_dir = run_cfg.snapshot_dir / "final" / exp_cfg.label
+        event_snapshot_dir = run_cfg.snapshot_dir / "events" / exp_cfg.label
+        depletion_snapshot_dir = run_cfg.snapshot_dir / "depletions" / exp_cfg.label
 
 
     delivery_history: list[int] = []
@@ -80,7 +83,7 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
 
         next_tick = sim.manager.tick + 1
 
-        if pheromone_visualizer and next_tick in sim.events_by_tick:
+        if pheromone_visualizer and event_snapshot_dir and next_tick in sim.events_by_tick:
             before = pheromone_visualizer.snapshot(sim)
             
             for event in sim.events_by_tick[next_tick]:
@@ -92,11 +95,27 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
         sim.step()
         tick = sim.manager.tick
 
+        for depleted_pos in sim.manager.food_depletions_this_tick:
+            x, y = depleted_pos
+            snapshot_path = None
+
+            if pheromone_visualizer and depletion_snapshot_dir:
+                snapshot_path = depletion_snapshot_dir / f"tick_{tick}_food_depleted_{x}_{y}.png"
+                title = f"{exp_cfg.label} - food depleted at ({x}, {y}) on tick {tick}"
+                pheromone_visualizer.save_heatmap(sim, snapshot_path, title)
+
+            logger.log(
+                tick,
+                "food_depleted",
+                cell=[x, y],
+                snapshot=str(snapshot_path) if snapshot_path else None
+            )
+
         if pheromone_visualizer and tick in pending_comparisons:
             after = pheromone_visualizer.snapshot(sim)
 
             for event_tick, event_type, delay, event, before in pending_comparisons[tick]:
-                path = pheromone_snapshot_dir / f"tick_{event_tick}_{event_type}_compare_after_{delay}.png"
+                path = event_snapshot_dir / f"tick_{event_tick}_{event_type}_compare_after_{delay}.png"
                 title = f"{exp_cfg.label} - {event_type} at tick {event_tick}, after {delay} ticks"
                 pheromone_visualizer.save_comparison(before, after, event, path, title)
 
@@ -155,9 +174,9 @@ def _run_single(args: tuple[ExperimentConfig, RunConfig]) -> ExperimentResult:
             logger.log(tick, "extinction", epoch=epoch)
             break
     
-    if pheromone_visualizer:
+    if pheromone_visualizer and final_snapshot_dir:
         tick = sim.manager.tick
-        path = pheromone_snapshot_dir / f"final_tick_{tick}.png"
+        path = final_snapshot_dir / f"final_tick_{tick}.png"
         title = f"{exp_cfg.label} - final pheromone field at tick {tick}"
         pheromone_visualizer.save_heatmap(sim, path, title)
 

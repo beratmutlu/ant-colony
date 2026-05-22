@@ -1,0 +1,40 @@
+{
+  "label": "exp1_colony_24",
+  "comment": "Experiment 1 medium population: same non-trivial finite-food map as exp1_colony_12, but with 24 ants. This tests whether additional scouts and carriers improve the reliability and speed of food supply without changing the environment.",
+  "hypothesis": "A medium colony should deliver more food and stabilize earlier than the 12-ant run because pheromone trails are discovered and reinforced more often.",
+  "seed": 42,
+  "grid": {
+    "width": 18,
+    "height": 18
+  },
+  "ants": {
+    "n": 24,
+    "energy": 180.0,
+    "determinism": 70.0
+  },
+  "nest_pos": [9, 9],
+  "ph_strength": 60.0,
+  "food": {
+    "infinite": false,
+    "pickup_fraction": 0.005,
+    "depletion_threshold": 0.05
+  },
+  "food_sources": [
+    {"pos": [3, 3], "amount": 320.0},
+    {"pos": [15, 4], "amount": 320.0},
+    {"pos": [14, 15], "amount": 320.0}
+  ],
+  "events": [],
+  "ant_capacity_overrides": [
+    {
+      "value": 0,
+      "cells": [
+        [6, 2], [6, 3], [6, 4], [6, 6], [6, 7], [6, 8],
+        [6, 12], [6, 13], [6, 14], [6, 15],
+        [11, 3], [12, 3], [13, 3],
+        [11, 12], [12, 12], [14, 12], [15, 12],
+        [3, 10], [4, 10], [5, 10]
+      ]
+    }
+  ]
+}

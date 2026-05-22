@@ -1,0 +1,40 @@
+{
+  "label": "exp1_colony_12",
+  "comment": "Experiment 1 baseline population: show that food supply starts working with a small colony on a fixed 18x18 grid. The map has three finite food sources and static obstacles that force indirect paths through corridor gaps. This run isolates colony size by using 12 ants while keeping energy, determinism, pheromone strength, food, and obstacles constant.",
+  "hypothesis": "A small colony can establish food supply, but it should find and exploit sources more slowly than larger colonies because fewer scouts reinforce pheromone trails.",
+  "seed": 42,
+  "grid": {
+    "width": 18,
+    "height": 18
+  },
+  "ants": {
+    "n": 12,
+    "energy": 180.0,
+    "determinism": 70.0
+  },
+  "nest_pos": [9, 9],
+  "ph_strength": 60.0,
+  "food": {
+    "infinite": false,
+    "pickup_fraction": 0.005,
+    "depletion_threshold": 0.05
+  },
+  "food_sources": [
+    {"pos": [3, 3], "amount": 320.0},
+    {"pos": [15, 4], "amount": 320.0},
+    {"pos": [14, 15], "amount": 320.0}
+  ],
+  "events": [],
+  "ant_capacity_overrides": [
+    {
+      "value": 0,
+      "cells": [
+        [6, 2], [6, 3], [6, 4], [6, 6], [6, 7], [6, 8],
+        [6, 12], [6, 13], [6, 14], [6, 15],
+        [11, 3], [12, 3], [13, 3],
+        [11, 12], [12, 12], [14, 12], [15, 12],
+        [3, 10], [4, 10], [5, 10]
+      ]
+    }
+  ]
+}

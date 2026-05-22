@@ -21,13 +21,18 @@ class Manager:
 
         self.determinism = determinism
         self.ant_energy = ant_energy
+
         self.food_pickup_fraction = food_pickup_fraction
         self.food_depletion_threshold = food_depletion_threshold
+        self.food_depletions_this_tick: list[tuple[int, int]] = []
+
         self.ants: list[Ant] = [
             Ant(grid.get_cell(*nest_pos), energy=self.ant_energy, determinism=determinism) for _ in range(n_ants)
         ]
     def tick_clock(self) -> None:
         self.tick += 1
+
+        self.food_depletions_this_tick = []
 
         self.score_this_tick = 0
         self.food_delivered_this_tick = 0
@@ -135,6 +140,7 @@ class Manager:
             food_left = ant.cell.items[ItemType.FOOD]
             if food_left < self.food_depletion_threshold:
                 ant.cell.remove_item(ItemType.FOOD, food_left)
+                self.food_depletions_this_tick.append(ant.cell.pos)
         else:
             ant.last_action_ok = False
 

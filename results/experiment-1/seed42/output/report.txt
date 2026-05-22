@@ -1,0 +1,87 @@
+================================================================================
+EXPERIMENT COMPARISON REPORT
+================================================================================
+
+Seed:            42
+Configurations:  3
+
+Config                       Score    Ticks   Epochs    Conv@        Eff   Ants
+-------------------------------------------------------------------------------
+exp1_colony_12                3500     7798      519      N/A     0.4488      1
+exp1_colony_24                3503     4075      271      N/A     0.8596      3
+exp1_colony_36                3696     3974      264      N/A     0.9300      2
+
+--- Online Plateau Ranges ---
+exp1_colony_12            31-507
+exp1_colony_24            32-248
+exp1_colony_36            32-250
+
+--- Post-Hoc Plateau Ranges ---
+exp1_colony_12            conv@=  N/A  N/A
+exp1_colony_24            conv@=   36  36-245
+exp1_colony_36            conv@=  N/A  N/A
+
+--- Raw PELT Regime Segments ---
+
+  [exp1_colony_12]
+    Epochs        Len     Mean      Std     Slope    Drift  Plateau
+    ---------------------------------------------------------------
+    1-485         485     6.99     1.78     0.001    6.6%       no
+    486-507        22     5.05     1.29     0.056   23.3%       no
+    508-519        12     0.08     0.29    -0.038  507.7%       no
+
+  [exp1_colony_24]
+    Epochs        Len     Mean      Std     Slope    Drift  Plateau
+    ---------------------------------------------------------------
+    1-35           35    12.03     3.43     0.055   15.6%       no
+    36-245        210    14.11     2.72    -0.002    3.6%      yes
+    246-259        14     8.21     2.94     0.103   16.3%       no
+    260-271        12     0.25     0.87    -0.115  507.7%       no
+
+  [exp1_colony_36]
+    Epochs        Len     Mean      Std     Slope    Drift  Plateau
+    ---------------------------------------------------------------
+    1-67           67    16.61     3.88    -0.008    3.0%       no
+    68-227        160    14.53     2.91    -0.005    5.2%       no
+    228-250        23    10.83     3.20     0.157   31.9%       no
+    251-264        14     0.64     1.34    -0.222  448.9%       no
+
+--- Epoch Delivery Statistics ---
+Config                        Mean      Std      Min      Max
+-------------------------------------------------------------
+exp1_colony_12                 6.7      2.1        0       11
+exp1_colony_24                12.9      4.1        0       21
+exp1_colony_36                14.0      4.7        0       24
+
+--- Epoch Food Amount Statistics ---
+Config                        Mean      Std      Min      Max
+-------------------------------------------------------------
+exp1_colony_12              1.2391   2.3802   0.0000  12.7848
+exp1_colony_24              2.3905   4.4820   0.0000  22.9650
+exp1_colony_36              3.1867   6.1821   0.0000  36.1421
+
+--- Configuration Parameters ---
+
+  [exp1_colony_12]
+    ants.n           = 12
+    ants.energy       = 180.0
+    ants.determinism  = 70.0
+    ph_strength      = 60.0
+    grid             = 18x18
+    food_sources     = 3
+
+  [exp1_colony_24]
+    ants.n           = 24
+    ants.energy       = 180.0
+    ants.determinism  = 70.0
+    ph_strength      = 60.0
+    grid             = 18x18
+    food_sources     = 3
+
+  [exp1_colony_36]
+    ants.n           = 36
+    ants.energy       = 180.0
+    ants.determinism  = 70.0
+    ph_strength      = 60.0
+    grid             = 18x18
+    food_sources     = 3

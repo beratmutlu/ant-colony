@@ -1,0 +1,78 @@
+{
+  "label": "exp3_energy_scaled",
+  "comment": "Experiment 3 energy-scaled variant: same 30x30 cold-start world, food layout, pheromone strength, determinism, and obstacle corridors as exp3_fixed_budget. Only ant energy is increased from 180 to 300. This isolates whether longer ant lifetime compensates for the larger search space and longer return routes.",
+  "hypothesis": "With the same 24 ants but higher energy, the colony should keep more ants alive, sustain exploration longer, and improve delivery plateaus or final food amount compared with the fixed-budget run.",
+  "seed": 42,
+  "grid": {
+    "width": 30,
+    "height": 30
+  },
+  "ants": {
+    "n": 24,
+    "energy": 300.0,
+    "determinism": 70.0
+  },
+  "nest_pos": [
+    15,
+    15
+  ],
+  "ph_strength": 60.0,
+  "food": {
+    "infinite": false,
+    "pickup_fraction": 0.004,
+    "depletion_threshold": 0.05
+  },
+  "food_sources": [
+    {
+      "pos": [
+        3,
+        4
+      ],
+      "amount": 420.0
+    },
+    {
+      "pos": [
+        26,
+        5
+      ],
+      "amount": 420.0
+    },
+    {
+      "pos": [
+        25,
+        25
+      ],
+      "amount": 420.0
+    },
+    {
+      "pos": [
+        4,
+        26
+      ],
+      "amount": 420.0
+    }
+  ],
+  "events": [],
+  "ant_capacity_overrides": [
+    {
+      "value": 0,
+      "cells": [
+        [10, 2], [10, 3], [10, 4], [10, 5], [10, 6], [10, 7],
+        [10, 9], [10, 10], [10, 11], [10, 12], [10, 13], [10, 14],
+        [10, 16], [10, 17], [10, 18], [10, 19], [10, 20], [10, 21],
+        [10, 23], [10, 24], [10, 25], [10, 26], [10, 27], [20, 2],
+        [20, 3], [20, 4], [20, 5], [20, 7], [20, 8], [20, 9],
+        [20, 10], [20, 11], [20, 12], [20, 13], [20, 14], [20, 16],
+        [20, 17], [20, 18], [20, 19], [20, 20], [20, 21], [20, 22],
+        [20, 23], [20, 25], [20, 26], [20, 27], [3, 10], [4, 10],
+        [5, 10], [6, 10], [8, 10], [9, 10], [10, 10], [11, 10],
+        [12, 10], [13, 10], [14, 10], [16, 10], [17, 10], [18, 10],
+        [19, 10], [20, 10], [21, 10], [22, 10], [24, 10], [25, 10],
+        [26, 10], [3, 20], [4, 20], [5, 20], [7, 20], [8, 20],
+        [9, 20], [10, 20], [11, 20], [12, 20], [13, 20], [14, 20],
+        [16, 20], [17, 20], [18, 20], [19, 20], [20, 20], [21, 20],
+        [22, 20], [23, 20], [25, 20], [26, 20]
+      ]
+    }
+  ]
+}

@@ -1,0 +1,95 @@
+{
+  "label": "exp2_block_gap_ph30",
+  "comment": "Experiment 2 weak-pheromone recovery: a clean 18x18 warmstart world with one nest at [4, 13], one infinite food source at [15, 4], and an initialized bidirectional pheromone trail. This config is designed for a 30000-tick run with epoch size 100. At tick 12000, a widened band across the established trail is blocked and cleared of pheromones; at tick 16000, the band is reopened. The food source remains available by detour. Pheromone deposition strength is intentionally low to test slow or incomplete restoration.",
+  "hypothesis": "With weak pheromone deposition, the temporary trail interruption should cause the longest recovery and the lowest post-reopening delivery plateau.",
+  "seed": 42,
+  "grid": {
+    "width": 18,
+    "height": 18
+  },
+  "ants": {
+    "n": 24,
+    "energy": 240.0,
+    "determinism": 75.0
+  },
+  "nest_pos": [4, 13],
+  "ph_strength": 30.0,
+  "food": {
+    "infinite": true,
+    "pickup_fraction": 0.0,
+    "depletion_threshold": 0.0
+  },
+  "food_sources": [
+    {"pos": [15, 4], "amount": 1000.0}
+  ],
+  "events": [
+    {
+      "tick": 12000,
+      "type": "set_ant_capacity",
+      "cells": [
+        [6, 10], [6, 11], [6, 12],
+        [7, 9], [7, 10], [7, 11],
+        [8, 8], [8, 9], [8, 10],
+        [9, 7], [9, 8], [9, 9],
+        [10, 6], [10, 7], [10, 8],
+        [11, 5], [11, 6], [11, 7],
+        [12, 4], [12, 5], [12, 6],
+        [13, 3], [13, 4], [13, 5]
+      ],
+      "value": 0
+    },
+    {
+      "tick": 12000,
+      "type": "clear_pheromones",
+      "cells": [
+        [6, 10], [6, 11], [6, 12],
+        [7, 9], [7, 10], [7, 11],
+        [8, 8], [8, 9], [8, 10],
+        [9, 7], [9, 8], [9, 9],
+        [10, 6], [10, 7], [10, 8],
+        [11, 5], [11, 6], [11, 7],
+        [12, 4], [12, 5], [12, 6],
+        [13, 3], [13, 4], [13, 5]
+      ]
+    },
+    {
+      "tick": 16000,
+      "type": "set_ant_capacity",
+      "cells": [
+        [6, 10], [6, 11], [6, 12],
+        [7, 9], [7, 10], [7, 11],
+        [8, 8], [8, 9], [8, 10],
+        [9, 7], [9, 8], [9, 9],
+        [10, 6], [10, 7], [10, 8],
+        [11, 5], [11, 6], [11, 7],
+        [12, 4], [12, 5], [12, 6],
+        [13, 3], [13, 4], [13, 5]
+      ],
+      "value": 10
+    }
+  ],
+  "initial_pheromones": [
+    {"type": "PHEROMONE_FOOD", "amount": 35.0, "cells": [[5, 12]]},
+    {"type": "PHEROMONE_FOOD", "amount": 45.0, "cells": [[6, 11]]},
+    {"type": "PHEROMONE_FOOD", "amount": 55.0, "cells": [[7, 10]]},
+    {"type": "PHEROMONE_FOOD", "amount": 65.0, "cells": [[8, 9]]},
+    {"type": "PHEROMONE_FOOD", "amount": 75.0, "cells": [[9, 8]]},
+    {"type": "PHEROMONE_FOOD", "amount": 85.0, "cells": [[10, 7]]},
+    {"type": "PHEROMONE_FOOD", "amount": 90.0, "cells": [[11, 6]]},
+    {"type": "PHEROMONE_FOOD", "amount": 95.0, "cells": [[12, 5]]},
+    {"type": "PHEROMONE_FOOD", "amount": 100.0, "cells": [[13, 4]]},
+    {"type": "PHEROMONE_FOOD", "amount": 100.0, "cells": [[14, 4]]},
+    {"type": "PHEROMONE_FOOD", "amount": 100.0, "cells": [[15, 4]]},
+    {"type": "PHEROMONE_NEST", "amount": 35.0, "cells": [[14, 4]]},
+    {"type": "PHEROMONE_NEST", "amount": 45.0, "cells": [[13, 4]]},
+    {"type": "PHEROMONE_NEST", "amount": 55.0, "cells": [[12, 5]]},
+    {"type": "PHEROMONE_NEST", "amount": 65.0, "cells": [[11, 6]]},
+    {"type": "PHEROMONE_NEST", "amount": 75.0, "cells": [[10, 7]]},
+    {"type": "PHEROMONE_NEST", "amount": 85.0, "cells": [[9, 8]]},
+    {"type": "PHEROMONE_NEST", "amount": 90.0, "cells": [[8, 9]]},
+    {"type": "PHEROMONE_NEST", "amount": 95.0, "cells": [[7, 10]]},
+    {"type": "PHEROMONE_NEST", "amount": 100.0, "cells": [[6, 11]]},
+    {"type": "PHEROMONE_NEST", "amount": 100.0, "cells": [[5, 12]]},
+    {"type": "PHEROMONE_NEST", "amount": 100.0, "cells": [[4, 13]]}
+  ]
+}

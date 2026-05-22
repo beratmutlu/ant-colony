@@ -2,7 +2,8 @@
 Usage:
     python main.py                  # seed 42
     python main.py --seed 123       # custom seed
-    python main.py --visualize      # also launch baseline in pygame
+    python main.py --visualize      # also launch first config in pygame
+    python main.py --visualize 2    # launch third loaded config in pygame
 """
 
 import argparse
@@ -23,7 +24,15 @@ def main() -> None:
     parser.add_argument("--convergence-epsilon", type=float, default=0.15, help="Convergence epsilon value")
     parser.add_argument("--no-show", action="store_true", help="Save plots without showing")
     parser.add_argument("--sequential", action="store_true", help="Run sequentially (debug)")
-    parser.add_argument("--visualize", action="store_true", help="Launch baseline sim in pygame")
+    parser.add_argument(
+        "--visualize",
+        nargs="?",
+        const=0,
+        default=None,
+        type=int,
+        metavar="INDEX",
+        help="Launch selected loaded config in pygame by zero-based index (default: 0 when flag is present)"
+    )
     parser.add_argument("--config-dir", type=str, default="configs/experiments", help="Select the set of experiment configurations to simulate")
     parser.add_argument("--run-id", type=str, default=None, help="Optional output run id")
     parser.add_argument("--post-hoc-penalty-scale", type=float, default=1.0, help="PELT penalty scale for post-hoc regime detection")
@@ -65,7 +74,7 @@ def main() -> None:
         convergence_window=args.convergence_window,
         convergence_epsilon=args.convergence_epsilon,
         log_dir=output_dir / "logs",
-        pheromone_snapshot_dir=output_dir / "pheromones",
+        snapshot_dir=output_dir / "snapshots",
         post_hoc_penalty_scale=args.post_hoc_penalty_scale,
         post_hoc_max_relative_total_drift=args.post_hoc_max_relative_total_drift,
         post_hoc_min_relative_regime_step=args.post_hoc_min_relative_regime_step
@@ -74,19 +83,26 @@ def main() -> None:
     runner = BatchRunner(run_config=run_cfg, experiments=experiments)
 
     # run experiments
-    if args.visualize:
+    if args.visualize is not None:
+        if args.visualize < 0 or args.visualize >= len(experiments):
+            raise SystemExit(
+                f"--visualize index {args.visualize} is out of range "
+                f"for {len(experiments)} loaded config(s)"
+            )
+
         from colony.core.simulation import Simulation
         from rendering.pygame_renderer import PygameRenderer
 
         print("Running experiments in background …")
         future = runner.run()
 
-        # Launch baseline sim in pygame while experiments run
-        baseline_cfg = experiments[0].build_config()
+        # Launch selected sim in pygame while experiments run.
+        selected_exp = experiments[args.visualize]
+        selected_cfg = selected_exp.build_config()
         sim = Simulation()
-        sim.load_dict(baseline_cfg)
+        sim.load_dict(selected_cfg)
         sim.build()
-        print(f"Launching pygame visualizer (config: {experiments[0].label}) …\n")
+        print(f"Launching pygame visualizer (config: {selected_exp.label}) …\n")
         asyncio.run(PygameRenderer(sim).run())
 
         results = future.get()

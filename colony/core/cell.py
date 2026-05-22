@@ -10,7 +10,10 @@ class Cell:
             self.items.update(items)
 
     def add_item(self, item: ItemType, amount: float) -> None:
-        self.items[item] = min(self.items[item] + amount, self.cap_item)
+        if item.decays:
+            self.items[item] = min(self.items[item] + amount, self.cap_item)
+        else:
+            self.items[item] += amount
 
     def remove_item(self, item: ItemType, amount: float) -> None:
         self.items[item] = max(self.items[item] - amount, 0)

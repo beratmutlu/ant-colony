@@ -1,0 +1,82 @@
+================================================================================
+EXPERIMENT COMPARISON REPORT
+================================================================================
+
+Seed:            42
+Configurations:  3
+
+Config                       Score    Ticks   Epochs    Conv@        Eff   Ants
+-------------------------------------------------------------------------------
+exp3_fixed_budget             2424     4977       49       40     0.4870     23
+exp3_energy_scaled            4636    24008      240       81     0.1931      1
+exp3_colony_energy_scaled     2377     3905       39       33     0.6087      1
+
+--- Online Plateau Ranges ---
+exp3_fixed_budget         40-49
+exp3_energy_scaled        33-46, 81-240
+exp3_colony_energy_scaled 33-39
+
+--- Post-Hoc Plateau Ranges ---
+exp3_fixed_budget         conv@=  N/A  N/A
+exp3_energy_scaled        conv@=   47  47-240
+exp3_colony_energy_scaled conv@=  N/A  N/A
+
+--- Raw PELT Regime Segments ---
+
+  [exp3_fixed_budget]
+    Epochs        Len     Mean      Std     Slope    Drift  Plateau
+    ---------------------------------------------------------------
+    1-10           10    40.70    15.54     3.315   73.3%       no
+    11-49          39    51.72     8.84    -0.211   15.5%       no
+
+  [exp3_energy_scaled]
+    Epochs        Len     Mean      Std     Slope    Drift  Plateau
+    ---------------------------------------------------------------
+    1-46           46    50.93     8.79     0.241   21.3%       no
+    47-240        194    11.82     2.42     0.001    1.4%      yes
+
+  [exp3_colony_energy_scaled]
+    Epochs        Len     Mean      Std     Slope    Drift  Plateau
+    ---------------------------------------------------------------
+    1-29           29    65.38    12.74     0.494   21.1%       no
+    30-39          10    48.10    33.07    -8.636  161.6%       no
+
+--- Epoch Delivery Statistics ---
+Config                        Mean      Std      Min      Max
+-------------------------------------------------------------
+exp3_fixed_budget             49.5     11.3        0       58
+exp3_energy_scaled            19.3     16.0        0       59
+exp3_colony_energy_scaled     60.9     20.9        0       76
+
+--- Epoch Food Amount Statistics ---
+Config                        Mean      Std      Min      Max
+-------------------------------------------------------------
+exp3_fixed_budget          12.8539  20.4825   0.0000  74.0263
+exp3_energy_scaled          4.2697   8.8812   0.0000  62.4276
+exp3_colony_energy_scaled  15.0112  27.7169   0.0000 108.4260
+
+--- Configuration Parameters ---
+
+  [exp3_fixed_budget]
+    ants.n           = 24
+    ants.energy       = 180.0
+    ants.determinism  = 70.0
+    ph_strength      = 60.0
+    grid             = 30x30
+    food_sources     = 4
+
+  [exp3_energy_scaled]
+    ants.n           = 24
+    ants.energy       = 300.0
+    ants.determinism  = 70.0
+    ph_strength      = 60.0
+    grid             = 30x30
+    food_sources     = 4
+
+  [exp3_colony_energy_scaled]
+    ants.n           = 36
+    ants.energy       = 300.0
+    ants.determinism  = 70.0
+    ph_strength      = 60.0
+    grid             = 30x30
+    food_sources     = 4

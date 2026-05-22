@@ -1,0 +1,82 @@
+================================================================================
+EXPERIMENT COMPARISON REPORT
+================================================================================
+
+Seed:            42
+Configurations:  3
+
+Config                       Score    Ticks   Epochs    Conv@        Eff   Ants
+-------------------------------------------------------------------------------
+exp2_block_gap_ph30          16318    30000      300      151     0.5439     24
+exp2_block_gap_ph70          18358    30000      300      157     0.6119     24
+exp2_block_gap_ph110         18478    30000      300      153     0.6159     24
+
+--- Online Plateau Ranges ---
+exp2_block_gap_ph30       31-120, 151-300
+exp2_block_gap_ph70       45-118, 157-300
+exp2_block_gap_ph110      34-120, 153-300
+
+--- Post-Hoc Plateau Ranges ---
+exp2_block_gap_ph30       conv@=  121  121-300
+exp2_block_gap_ph70       conv@=  121  121-300
+exp2_block_gap_ph110      conv@=  121  121-300
+
+--- Raw PELT Regime Segments ---
+
+  [exp2_block_gap_ph30]
+    Epochs        Len     Mean      Std     Slope    Drift  Plateau
+    ---------------------------------------------------------------
+    1-120         120    61.47     2.68    -0.010    1.9%       no
+    121-300       180    49.68     1.61     0.002    0.9%      yes
+
+  [exp2_block_gap_ph70]
+    Epochs        Len     Mean      Std     Slope    Drift  Plateau
+    ---------------------------------------------------------------
+    1-120         120    68.98     3.28    -0.007    1.2%       no
+    121-300       180    56.00     2.48     0.006    2.0%      yes
+
+  [exp2_block_gap_ph110]
+    Epochs        Len     Mean      Std     Slope    Drift  Plateau
+    ---------------------------------------------------------------
+    1-120         120    72.88     2.99     0.008    1.3%       no
+    121-300       180    54.07     2.37     0.005    1.6%      yes
+
+--- Epoch Delivery Statistics ---
+Config                        Mean      Std      Min      Max
+-------------------------------------------------------------
+exp2_block_gap_ph30           54.4      6.2       37       67
+exp2_block_gap_ph70           61.2      7.0       44       77
+exp2_block_gap_ph110          61.6      9.6       43       80
+
+--- Epoch Food Amount Statistics ---
+Config                        Mean      Std      Min      Max
+-------------------------------------------------------------
+exp2_block_gap_ph30         0.0000   0.0000   0.0000   0.0000
+exp2_block_gap_ph70         0.0000   0.0000   0.0000   0.0000
+exp2_block_gap_ph110        0.0000   0.0000   0.0000   0.0000
+
+--- Configuration Parameters ---
+
+  [exp2_block_gap_ph30]
+    ants.n           = 24
+    ants.energy       = 240.0
+    ants.determinism  = 75.0
+    ph_strength      = 30.0
+    grid             = 18x18
+    food_sources     = 1
+
+  [exp2_block_gap_ph70]
+    ants.n           = 24
+    ants.energy       = 240.0
+    ants.determinism  = 75.0
+    ph_strength      = 70.0
+    grid             = 18x18
+    food_sources     = 1
+
+  [exp2_block_gap_ph110]
+    ants.n           = 24
+    ants.energy       = 240.0
+    ants.determinism  = 75.0
+    ph_strength      = 100.0
+    grid             = 18x18
+    food_sources     = 1
